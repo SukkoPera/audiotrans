@@ -34,8 +34,7 @@ class DecFlac (DecoderFactory):
 	parametersRaw = ["--force-raw-format", "--endian=big", "--sign=signed"]
 	#~ endianness = Endianness.LITTLE
 	#~ parametersRaw = ["--force-raw-format", "--endian=little", "--sign=signed"]
-	parametersHQ = ["--decode", "--decode-through-errors", "-o", "-"]
-	defaultQuality = Quality.HIGH
+	parameters = ["--decode", "--decode-through-errors", "-o", "-"]
 
 if __name__ == '__main__':
 	decFact = DecFlac ()

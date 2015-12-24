@@ -27,16 +27,26 @@ import Process
 class DecoderFactory (BaseCoder):
 	def __init__ (self):
 		try:
-			BaseCoder.__init__ (self)
+			super (DecoderFactory, self).__init__ ()
 			print "Using \"%s\" as \"%s\" decoder" % (self.executablePath, "/".join (self.supportedExtensions))
 		except:
 			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" decoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
-		
+
+	def _makeCmdLine (self, filename, raw = False):
+		assert (filename is not None and filename != "")
+		self.cmdLine = [self.executablePath]
+		if raw:
+			assert self.parametersRaw is not None
+			self.cmdLine.extend (self.parametersRaw)
+		self.cmdLine.extend (self.parameters)
+		self.cmdLine.append (filename)
+		return self.cmdLine
+
 	def getDecoder (self, inFilename, quality = None):
 		try:
 			if quality is None:
 				quality = self.defaultQuality
-			argv = self.makeCmdLine (inFilename, quality)
+			argv = self._makeCmdLine (inFilename)
 			dec = Process.DecoderProcess (argv)
 			#print dec.process.stdout.readlines ()
 			return dec, self.endianness

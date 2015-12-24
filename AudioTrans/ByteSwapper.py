@@ -33,20 +33,32 @@ class ByteSwapperSox (DecoderProcess):
 	SOX_EXE = "sox"
 	SOX_BUFSIZE = 4096		# 8192 is the default for SoX v14.4.0, must be <= the size that is read()
 
-	def __init__ (self, input, debug = False):
+	def __init__ (self, input_, rawin, rawout, debug = False):
 		self.soxpath = utility.findInPath (self.SOX_EXE)
-		self.input = input
-		self.readbuf = ""
+		self.input_ = input_
 		self._eof = False
 		self.__debug = debug
 		if debug:
 			print "Starting sox-based ByteSwapper (sox: %s)" % self.soxpath
-		generalOpts = ["--buffer", str (self.SOX_BUFSIZE)]
-		#inputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u", "-"]
-		inputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-"]
-		#outputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u", "-x", "-"]
-		outputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-x", "-"]
-		cmdline = [self.soxpath] + generalOpts + inputOpts + outputOpts
+
+		# Start with general options
+		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE)]
+
+		# Raw input options
+		if rawin or 0:
+			#inputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
+
+		# Input filename
+		cmdline += ["-"]
+
+		if rawout:
+			#outputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u", "-x"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-x"]
+
+		# Output filename
+		cmdline += ["-"]
+
 		#~ print " ".join (cmdline)
 		DecoderProcess.__init__ (self, cmdline)
 
@@ -54,34 +66,38 @@ class ByteSwapperSox (DecoderProcess):
 		assert (self.process)
 		assert size >= self.SOX_BUFSIZE, "Must read() from SoX ByteSwapper at least %d bytes" % self.SOX_BUFSIZE
 		# We assume that in order to produce N bytes, we need N bytes
-		self.readbuf = ""
+		readbuf = ""
 		if not self._eof:
-			while len (self.readbuf) < size:
-				buf = self.input.read (size)
+			while len (readbuf) < size:
+				buf = self.input_.read (size)
 				if len (buf) == 0:
+					print "decoder input for sox EOF!"
 					self._eof = True
 					break
-				self.readbuf += buf
-			self.process.stdin.write (self.readbuf)
+				readbuf += buf
+			print "Writing %d bytes to sox input" % len (readbuf)
+			self.process.stdin.write (readbuf)
 			self.process.stdin.flush ()		# This is essential!
 			if self._eof:
 				self.process.stdin.close ()
-			retbuf = self.process.stdout.read (size)
+			print "Waiting for sox output"
+			retbuf = self.process.stdout.read (1)
+			print "ok"
 		else:
 			retbuf = ""
 		return retbuf
 
 
 class ByteSwapperPurePython (DecoderProcess):
-	def __init__ (self, input, debug = False):
-		self.input = input
+	def __init__ (self, input_, debug = False):
+		self.input_ = input_
 		self.__debug = debug
 		if debug:
 			print "Starting pure-Python ByteSwapper"
 
 	# LOL, this works!
 	def read (self, size):
-		buf = self.input.read (size)
+		buf = self.input_.read (size)
 		arr = array ("H", buf)
 		arr.byteswap ()
 		return arr.tostring ()
@@ -100,8 +116,8 @@ try:
 	utility.findInPath (ByteSwapperSox.SOX_EXE)
 	ByteSwapper = ByteSwapperSox
 except utility.NotFoundInPathException as ex:
-	print "sox not found in $PATH, falling back to pure-Python ByteSwapper"
-	ByteSwapper = ByteSwapperPurePython
+	print "sox not found in $PATH"
+	#~ ByteSwapper = ByteSwapperPurePython
 
 if __name__ == "__main__":
 	bs = ByteSwapper (None)

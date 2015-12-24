@@ -45,7 +45,7 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False):
 		enc, eend = codecsMgr.getEncoder (outfile, quality)
 		if eend != dend:
 			print "Using ByteSwapper"
-			input = ByteSwapper (dec)
+			input = ByteSwapper (dec, False, True)	# FIXME
 		else:
 			input = dec
 		buf = input.read (BUFSIZE)

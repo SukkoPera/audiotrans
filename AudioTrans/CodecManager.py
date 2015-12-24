@@ -28,34 +28,38 @@ from Quality import Quality
 
 class CodecManager:
 	def __init__ (self):
-		self.__setupEncoders ()
-		self.__setupDecoders ()
+		self._setupEncoders ()
+		self._setupDecoders ()
 
-	def __setupEncoders (self):
-		self.__supportedOutputFormats = {}
+	def _setupEncoders (self):
+		self.outputFormats = {}
 		for encoder in Encoders.__all__:
 			try:
-				exec ("import Encoders.%s" % encoder)
-				exec ("encoderModule = Encoders.%s" % encoder)
-				exec ("encoderInstance = encoderModule.%s ()" % encoder)
-				for format in encoderInstance.getSupportedExtensions ():
-					self.__supportedOutputFormats[format] = encoderInstance
+				#~ print "Trying to import encoder: %s" % encoder
+				#~ exec ("import Encoders.%s" % encoder)
+				#~ exec ("encoderModule = Encoders.%s" % encoder)
+				#~ exec ("encoderInstance = encoderModule.%s ()" % encoder)
+				exec ("from AudioTrans.Encoders import %s" % encoder)
+				exec ("encoderInstance = %s.%s ()" % (encoder, encoder))
+				for fmt in encoderInstance.getSupportedExtensions ():
+					self.outputFormats[fmt] = encoderInstance
 			except MissingCoderExe as ex:
 				# Encoder executable not found, ignore
 				pass
 			except Exception as ex:
 				# Could not init encoder for some other reason
 				print "Cannot init encoder \"%s\": %s" % (encoder, str (ex))
+				raise
 
-	def __setupDecoders (self):
-		self.__supportedInputFormats = {}
+	def _setupDecoders (self):
+		self.inputFormats = {}
 		for decoder in Decoders.__all__:
 			try:
 				exec ("import Decoders.%s" % decoder)
 				exec ("decoderModule = Decoders.%s" % decoder)
 				exec ("decoderInstance = decoderModule.%s ()" % decoder)
-				for format in decoderInstance.getSupportedExtensions ():
-					self.__supportedInputFormats[format] = decoderInstance
+				for fmt in decoderInstance.getSupportedExtensions ():
+					self.inputFormats[fmt] = decoderInstance
 			except MissingCoderExe as ex:
 				# Decoder executable not found, ignore
 				pass
@@ -64,27 +68,22 @@ class CodecManager:
 				print "Cannot init decoder \"%s\": %s" % (decoder, str (ex))
 
 	def report (self):
+		import sys
 		print >> sys.stderr, "Decoders"
 		print >> sys.stderr, "-" * 80
-		for ext, module in self.__supportedInputFormats.iteritems ():
+		for ext, module in self.inputFormats.iteritems ():
 			print >> sys.stderr, "%s --> %s" % (ext, module.getName ())
 
 		print >> sys.stderr
-		
+
 		print >> sys.stderr, "Encoders"
 		print >> sys.stderr, "-" * 80
-		for ext, module in self.__supportedOutputFormats.iteritems ():
+		for ext, module in self.outputFormats.iteritems ():
 			print >> sys.stderr, "%s --> %s" % (ext, module.getName ())
 
-	def getAllSupportedOutputFormats (self):
-		return self.__supportedOutputFormats
-
-	def getAllSupportedInputFormats (self):
-		return self.__supportedInputFormats
-
-	def getEncoderFactory (self, extension):
-		if extension in self.__supportedOutputFormats:
-			return self.__supportedOutputFormats[extension]
+	def getEncoderForExtension (self, extension):
+		if extension in self.outputFormats:
+			return self.outputFormats[extension]
 		else:
 			raise Exception ("No encoder for %s" % extension)
 
@@ -93,12 +92,12 @@ class CodecManager:
 		if extension == "":
 			raise Exception ("No extension in filename")
 		else:
-			decFact = self.getEncoderFactory (extension)
+			decFact = self.getEncoderForExtension (extension)
 			return decFact.getEncoder (outFilename, quality)
 
-	def getDecoderFactory (self, extension):
-		if extension in self.__supportedInputFormats:
-			return self.__supportedInputFormats[extension]
+	def getDecoderForExtension (self, extension):
+		if extension in self.inputFormats:
+			return self.inputFormats[extension]
 		else:
 			raise Exception ("No decoder for \"%s\"" % extension)
 
@@ -107,7 +106,7 @@ class CodecManager:
 		if extension == "":
 			raise Exception ("No extension in filename")
 		else:
-			decFact = self.getDecoderFactory (extension)
+			decFact = self.getDecoderForExtension (extension)
 			return decFact.getDecoder (inFilename, quality)
 
 

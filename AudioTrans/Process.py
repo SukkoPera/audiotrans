@@ -26,15 +26,15 @@ import subprocess
 class ProcessException (Exception):
 	pass
 
-class Process:
+class Process (object):
 	"""Base class for runnable objects."""
-	def __init__ (self, cmdLine, debug = False):
+	def __init__ (self, cmdLine, debug = 1):
 		"""Starts the process and returns a pipe to it."""
-		self.__cmdLine = cmdLine
-		self.__debug = debug
+		self._cmdLine = cmdLine
+		self._debug = debug
 		if debug:
-			print "Starting process: %s" % " ".join (self.__cmdLine)
-		self.process = subprocess.Popen (self.__cmdLine, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, bufsize = 1, close_fds = True)
+			print "Starting process: %s" % " ".join (self._cmdLine)
+		self.process = subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE, bufsize = 1, close_fds = True)
 		if debug:
 			print "Process started successfully, pid = %d" % self.process.pid
 
@@ -45,7 +45,7 @@ class Process:
 		ret = self.process.wait ()
 		if ret != 0:
 			raise ProcessException ("ERROR: Process returned %d" % ret)
-		elif self.__debug:
+		elif self._debug:
 			print "Process terminated correctly"
 
 		return ret
@@ -53,7 +53,7 @@ class Process:
 
 class DecoderProcess (Process):
 	def __init__ (self, cmdLine):
-		Process.__init__ (self, cmdLine)
+		super (DecoderProcess, self).__init__ (cmdLine)
 
 	def read (self, size):
 		assert (self.process)
@@ -65,7 +65,7 @@ class DecoderProcess (Process):
 
 class EncoderProcess (Process):
 	def __init__ (self, cmdLine):
-		Process.__init__ (self, cmdLine)
+		super (EncoderProcess, self).__init__ (cmdLine)
 
 	def write (self, str):
 		assert (self.process)

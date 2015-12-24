@@ -27,7 +27,7 @@ from Endianness import Endianness
 class MissingCoderExe (Exception):
 	pass
 
-class BaseCoder:
+class BaseCoder (object):
 	# The following members *MUST* be overridden by child classes."
 	name = None
 	version = None
@@ -44,8 +44,10 @@ class BaseCoder:
 
 	def __init__ (self):
 		# First of all see if the encoder executable can be found in $PATH
-		fullExe = utility.findInPath (self.executable)
-		self.executablePath = fullExe
+		try:
+			self.executablePath = utility.findInPath (self.executable)
+		except utility.NotFoundInPathException:
+			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" encoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
 
 	def getName (self):
 		return "%s v%s" % (self.name, self.version)
@@ -78,7 +80,7 @@ class BaseCoder:
 		self.cmdLine.extend (parameters)
 		self.cmdLine.append (outFilename)
 		return self.cmdLine
-	
+
 	def getSupportedExtensions (self):
 		return self.supportedExtensions
 

@@ -27,11 +27,9 @@ import Process
 
 class EncoderFactory (BaseCoder):
 	def __init__ (self):
-		try:
-			BaseCoder.__init__ (self)
-			print "Using \"%s\" as \"%s\" encoder" % (self.executablePath, "/".join (self.supportedExtensions))
-		except:
-			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" encoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
+		super (EncoderFactory, self).__init__ ()
+		print "Using \"%s\" as \"%s\" encoder" % (self.executablePath, "/".join (self.supportedExtensions))
+
 
 	def getEncoder (self, outFilename, quality = None):
 		try:
@@ -43,7 +41,7 @@ class EncoderFactory (BaseCoder):
 		except Exception, ex:
 			print "Exception in getEncoder(): %s" % ex.message
 			raise
-	
+
 	#def __del__ (self):
 		#print "Encoder for \"%s\" being destroyed!" % self.outfileext
 

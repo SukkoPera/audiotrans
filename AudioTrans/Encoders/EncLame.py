@@ -20,9 +20,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Encoder import EncoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Endianness import Endianness
+from AudioTrans.Quality import Quality
 
 class EncLame (EncoderFactory):
 	name = "LAME MP3 encoder"
@@ -35,7 +35,10 @@ class EncLame (EncoderFactory):
 	parametersMQ = ["--alt-preset", "160", "-"]
 	parametersHQ = ["--preset", "extreme", "-B", "192", "-b", "96", "-"]
 	defaultQuality = Quality.MEDIUM
-		
+
+	#~ def __init__ (self):
+		#~ super (EncLame, self).__init__ (self)
+
 #	def __makeCmdLine (self):
 #		tmp = EncoderFactory.__makeCmdLine (self)
 #		if self.title:

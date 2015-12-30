@@ -43,21 +43,18 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False):
 		step = 0
 		dec, dend = codecsMgr.getDecoder (infile)
 		enc, eend = codecsMgr.getEncoder (outfile, quality)
-		if eend != dend:
-			print "Using ByteSwapper"
-			input = ByteSwapper (dec, False, True)	# FIXME
-		else:
-			input = dec
-		buf = input.read (BUFSIZE)
+		filt = ByteSwapper (dec, False, True)	# FIXME
+		buf = filt.read (BUFSIZE)
 		while len (buf) > 0:
 			progress (step)
 			step += 1
 			enc.write (buf)
 			#progress (step)
 			#step += 1
-			buf = input.read (BUFSIZE)
-		input.close ()
+			buf = filt.read (BUFSIZE)
+		filt.close ()
 		enc.close ()
+		dec.close ()
 		print "\rTranscoding ended"
 
 def makeOutputFilename (infile, outfile):

@@ -20,7 +20,7 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from Process import DecoderProcess
+from Process import FilterProcess
 
 # The sox-based swapper needs this
 import utility
@@ -28,13 +28,18 @@ import utility
 # The pure Python swapper needs this
 from array import array
 
-class ByteSwapperSox (DecoderProcess):
+class ByteSwapper (FilterProcess):
 	"""Here we could rely on sox, but we might also implement this manually..."""
 	SOX_EXE = "sox"
-	SOX_BUFSIZE = 4096		# 8192 is the default for SoX v14.4.0, must be <= the size that is read()
+	SOX_BUFSIZE = 8192		# 8192 is the default for SoX v14.4.0, must be <= the size that is read()
+	READ_BUFSIZE = 1024 * 32
 
 	def __init__ (self, input_, rawin, rawout, debug = False):
-		self.soxpath = utility.findInPath (self.SOX_EXE)
+		try:
+			self.soxpath = utility.findInPath (self.SOX_EXE)
+		except utility.NotFoundInPathException as ex:
+			print "sox not found in $PATH"
+
 		self.input_ = input_
 		self._eof = False
 		self.__debug = debug
@@ -48,76 +53,65 @@ class ByteSwapperSox (DecoderProcess):
 		if rawin or 0:
 			#inputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u"]
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
+		else:
+			cmdline += ["-t", "wav"]
 
 		# Input filename
 		cmdline += ["-"]
 
 		if rawout:
 			#outputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u", "-x"]
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-x"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 
 		# Output filename
 		cmdline += ["-"]
 
 		#~ print " ".join (cmdline)
-		DecoderProcess.__init__ (self, cmdline)
+		super (ByteSwapper, self).__init__ (cmdline)
+
+		# Read buffer
+		self._buf = ""
+		self._eof = False
+
+	def _fillBuf (self):
+		while not self._eof and len (self._buf) < self.READ_BUFSIZE:
+			buf = self.input_.read (self.READ_BUFSIZE)
+			if len (buf) == 0:
+				#~ print "decoder input for sox EOF!"
+				self._eof = True
+			self._buf += buf
 
 	def read (self, size):
 		assert (self.process)
-		assert size >= self.SOX_BUFSIZE, "Must read() from SoX ByteSwapper at least %d bytes" % self.SOX_BUFSIZE
-		# We assume that in order to produce N bytes, we need N bytes
-		readbuf = ""
-		if not self._eof:
-			while len (readbuf) < size:
-				buf = self.input_.read (size)
-				if len (buf) == 0:
-					print "decoder input for sox EOF!"
-					self._eof = True
+		retbuf = ""
+		while len (retbuf) < size:
+			try:
+				self._fillBuf ()
+				#~ print "Buffer: %d bytes" % (len (self._buf))
+				l = min (self.SOX_BUFSIZE, len (self._buf))
+				if l > 0:
+					#~ print "Writing %d bytes to sox input" % len
+					self.process.stdin.write (self._buf[:l])
+					self.process.stdin.flush ()		# This is essential!
+					#~ if self._eof:
+						#~ self.process.stdin.close ()
+					self._buf = self._buf[l:]
+				#~ else:
+					#~ print "Nothing to write!"
+
+				#~ print "Waiting for %d bytes as sox output" % size
+				buf = self.process.stdout.read (size)
+				if len (buf) > 0:
+					retbuf += buf
+					#~ print "ok"
+				else:
+					#~ print "Sox EOF!"
 					break
-				readbuf += buf
-			print "Writing %d bytes to sox input" % len (readbuf)
-			self.process.stdin.write (readbuf)
-			self.process.stdin.flush ()		# This is essential!
-			if self._eof:
-				self.process.stdin.close ()
-			print "Waiting for sox output"
-			retbuf = self.process.stdout.read (1)
-			print "ok"
-		else:
-			retbuf = ""
+			except IOError as err:
+				#~ print str (err)
+				pass
+
 		return retbuf
-
-
-class ByteSwapperPurePython (DecoderProcess):
-	def __init__ (self, input_, debug = False):
-		self.input_ = input_
-		self.__debug = debug
-		if debug:
-			print "Starting pure-Python ByteSwapper"
-
-	# LOL, this works!
-	def read (self, size):
-		buf = self.input_.read (size)
-		arr = array ("H", buf)
-		arr.byteswap ()
-		return arr.tostring ()
-
-	def close (self):
-		if self.__debug:
-			print "ByteSwapper terminating"
-		return 0
-
-
-# Here we choose which swapper to use. Both seem to be working fine, and
-# of course the pure-Python one would introduce much less overhead. But
-# we don't trust it so much, so prefer the SoX one if sox is found on the
-# system.
-try:
-	utility.findInPath (ByteSwapperSox.SOX_EXE)
-	ByteSwapper = ByteSwapperSox
-except utility.NotFoundInPathException as ex:
-	print "sox not found in $PATH"
-	#~ ByteSwapper = ByteSwapperPurePython
 
 if __name__ == "__main__":
 	bs = ByteSwapper (None)

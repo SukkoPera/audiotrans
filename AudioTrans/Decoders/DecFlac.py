@@ -20,9 +20,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Decoder import DecoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+from AudioTrans.Decoder import DecoderFactory
+from AudioTrans.Quality import Quality
+from AudioTrans.Endianness import Endianness
+from AudioTrans.AudioTag import AudioTag
+
+from mutagen.flac import FLAC as mutaFLAC
 
 class DecFlac (DecoderFactory):
 	name = "Official FLAC decoder"
@@ -30,11 +33,22 @@ class DecFlac (DecoderFactory):
 	supportedExtensions = ["flac"]
 	executable = "flac"
 	# There's no reason to use big endianess, apart from testing ByteSwappers
-	endianness = Endianness.BIG
-	parametersRaw = ["--force-raw-format", "--endian=big", "--sign=signed"]
-	#~ endianness = Endianness.LITTLE
+	#~ endianness = Endianness.BIG
+	#~ parametersRaw = ["--force-raw-format", "--endian=big", "--sign=signed"]
+	endianness = Endianness.LITTLE
 	#~ parametersRaw = ["--force-raw-format", "--endian=little", "--sign=signed"]
-	parameters = ["--decode", "--decode-through-errors", "-o", "-"]
+	parameters = ["--decode", "--decode-through-errors", "-c"]
+
+	def getTag (self):
+		m = mutaFLAC (self.filename)
+		tag = AudioTag ()
+		tag.artist = m["artist"]
+		tag.album = m["album"]
+		tag.title = m["title"]
+		tag.year = m["originalyear"]
+		tag.comment = m["comment"]
+		#~ print m
+		return tag
 
 if __name__ == '__main__':
 	decFact = DecFlac ()

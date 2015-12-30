@@ -35,26 +35,35 @@ def progress (stepNo):
 	sys.stderr.flush ()
 
 
-def transcode (codecsMgr, infile, outfile, quality, overwrite = False):
+def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferTag = True):
 	print "%s -> %s" % (infile, outfile)
 	if os.path.isfile (outfile) and not overwrite:
 		print "- Skipping because \"%s\" already exists" % outfile
 	else:
 		step = 0
-		dec, dend = codecsMgr.getDecoder (infile)
-		enc, eend = codecsMgr.getEncoder (outfile, quality)
-		filt = ByteSwapper (dec, False, True)	# FIXME
+		dec = codecsMgr.getDecoder (infile)
+		enc = codecsMgr.getEncoder (outfile, quality)
+		filt = ByteSwapper (dec, enc)
+		decproc = enc.getProcess ()
+		encproc = enc.getProcess ()
 		buf = filt.read (BUFSIZE)
 		while len (buf) > 0:
 			progress (step)
 			step += 1
-			enc.write (buf)
+			encproc.write (buf)
 			#progress (step)
 			#step += 1
 			buf = filt.read (BUFSIZE)
 		filt.close ()
-		enc.close ()
-		dec.close ()
+		encproc.close ()
+		decproc.close ()
+
+		# Transfer tag
+		if transferTag:
+			tag = dec.getTag ()
+			#~ print tag
+			enc.setTag (tag)
+
 		print "\rTranscoding ended"
 
 def makeOutputFilename (infile, outfile):

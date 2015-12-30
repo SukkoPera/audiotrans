@@ -20,36 +20,40 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+
 from BaseCoder import BaseCoder, MissingCoderExe
 import Process
 
 
 class DecoderFactory (BaseCoder):
-	def __init__ (self):
+	def __init__ (self, filename):
 		try:
 			super (DecoderFactory, self).__init__ ()
-			print "Using \"%s\" as \"%s\" decoder" % (self.executablePath, "/".join (self.supportedExtensions))
+			logging.debug ("Using \"%s\" as \"%s\" decoder", self.executablePath, "/".join (self.supportedExtensions))
+
+			self.filename = filename
 		except:
 			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" decoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
 
-	def _makeCmdLine (self, filename, raw = False):
-		assert (filename is not None and filename != "")
+	def _makeCmdLine (self, raw = False):
+		assert (self.filename is not None and self.filename != "")
 		self.cmdLine = [self.executablePath]
 		if raw:
 			assert self.parametersRaw is not None
 			self.cmdLine.extend (self.parametersRaw)
 		self.cmdLine.extend (self.parameters)
-		self.cmdLine.append (filename)
+		self.cmdLine.append (self.filename)
 		return self.cmdLine
 
-	def getDecoder (self, inFilename, quality = None):
-		try:
-			if quality is None:
-				quality = self.defaultQuality
-			argv = self._makeCmdLine (inFilename)
-			dec = Process.DecoderProcess (argv)
-			#print dec.process.stdout.readlines ()
-			return dec, self.endianness
-		except Exception, ex:
-			print "Exception in getDecoder(): %s" % ex.message
-			raise
+	def getProcess (self):
+		if self.process is None:
+			try:
+				self.process = Process.DecoderProcess (self._makeCmdLine ())
+			except Exception, ex:
+				logger.exception ("Exception in getDecoder(): %s", str (ex))
+				raise
+		return self.process
+
+	def getTag (self):
+		raise NotImplementedError

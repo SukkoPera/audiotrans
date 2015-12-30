@@ -49,6 +49,8 @@ class BaseCoder (object):
 		except utility.NotFoundInPathException:
 			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" encoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
 
+		self.process = None
+
 	def getName (self):
 		return "%s v%s" % (self.name, self.version)
 
@@ -80,9 +82,6 @@ class BaseCoder (object):
 		self.cmdLine.extend (parameters)
 		self.cmdLine.append (outFilename)
 		return self.cmdLine
-
-	def getSupportedExtensions (self):
-		return self.supportedExtensions
 
 #	def __makeOutputFilename (self, basename):
 #		"""Makes up the destination filename, usually appending the encoder extension to the filename."""

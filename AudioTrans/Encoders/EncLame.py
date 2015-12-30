@@ -23,6 +23,10 @@
 from AudioTrans.Encoder import EncoderFactory
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
+from AudioTrans.AudioTag import AudioTag
+
+import mutagen
+from mutagen.easyid3 import EasyID3
 
 class EncLame (EncoderFactory):
 	name = "LAME MP3 encoder"
@@ -59,6 +63,19 @@ class EncLame (EncoderFactory):
 #		self.cmdLine = tmp
 #		return tmp
 
+	def setTag (self, tag):
+		try:
+			audio = EasyID3 (self.filename)
+		except mutagen.id3.ID3NoHeaderError:
+			audio = mutagen.File (self.filename, easy = True)
+			audio.add_tags ()
+
+		audio["artist"] = tag.artist
+		audio["album"] = tag.album
+		audio["title"] = tag.title
+		audio["originaldate"] = tag.year
+		#~ audio["comment"] = tag["comment"]
+		audio.save ()
 
 if __name__ == '__main__':
 	encFact = EncLame ()

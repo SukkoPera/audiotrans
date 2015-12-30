@@ -20,54 +20,47 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+#~ logging.basicConfig (level = logging.DEBUG)
+
 from Process import FilterProcess
+import utility as utility
 
-# The sox-based swapper needs this
-import utility
-
-# The pure Python swapper needs this
-from array import array
 
 class ByteSwapper (FilterProcess):
-	"""Here we could rely on sox, but we might also implement this manually..."""
 	SOX_EXE = "sox"
-	SOX_BUFSIZE = 8192		# 8192 is the default for SoX v14.4.0, must be <= the size that is read()
+	SOX_BUFSIZE = 8192		# 8192 is the default for SoX v14.4.0
 	READ_BUFSIZE = 1024 * 32
 
-	def __init__ (self, input_, rawin, rawout, debug = False):
-		try:
-			self.soxpath = utility.findInPath (self.SOX_EXE)
-		except utility.NotFoundInPathException as ex:
-			print "sox not found in $PATH"
-
-		self.input_ = input_
-		self._eof = False
-		self.__debug = debug
-		if debug:
-			print "Starting sox-based ByteSwapper (sox: %s)" % self.soxpath
+	def __init__ (self, dec, enc):
+		self.soxpath = utility.findInPath (self.SOX_EXE)
 
 		# Start with general options
 		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE)]
 
 		# Raw input options
-		if rawin or 0:
-			#inputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u"]
+		if 0: #or rawin:
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 		else:
 			cmdline += ["-t", "wav"]
 
-		# Input filename
+		# Input filename: stdin
 		cmdline += ["-"]
 
-		if rawout:
-			#outputOpts = ["-t", "raw", "-r", "44100", "-c", "2", "-w", "-u", "-x"]
+		if 1 or rawout:
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 
-		# Output filename
+		if enc.endianness != dec.endianness:
+			cmdline += ["-x"]
+
+		# Output filename: stdout
 		cmdline += ["-"]
 
 		#~ print " ".join (cmdline)
 		super (ByteSwapper, self).__init__ (cmdline)
+
+		self.input_ = dec.getProcess ()
+		#~ self._enc = enc
 
 		# Read buffer
 		self._buf = ""
@@ -77,7 +70,7 @@ class ByteSwapper (FilterProcess):
 		while not self._eof and len (self._buf) < self.READ_BUFSIZE:
 			buf = self.input_.read (self.READ_BUFSIZE)
 			if len (buf) == 0:
-				#~ print "decoder input for sox EOF!"
+				logging.debug ("decoder input for sox EOF!")
 				self._eof = True
 			self._buf += buf
 
@@ -87,30 +80,30 @@ class ByteSwapper (FilterProcess):
 		while len (retbuf) < size:
 			try:
 				self._fillBuf ()
-				#~ print "Buffer: %d bytes" % (len (self._buf))
+				logging.debug ("Buffer: %d bytes available", len (self._buf))
 				l = min (self.SOX_BUFSIZE, len (self._buf))
 				if l > 0:
-					#~ print "Writing %d bytes to sox input" % len
+					logging.debug ("Writing %d bytes to sox input", l)
 					self.process.stdin.write (self._buf[:l])
 					self.process.stdin.flush ()		# This is essential!
 					#~ if self._eof:
 						#~ self.process.stdin.close ()
 					self._buf = self._buf[l:]
-				#~ else:
-					#~ print "Nothing to write!"
+				else:
+					logging.debug ("Nothing to write!")
 
-				#~ print "Waiting for %d bytes as sox output" % size
+				logging.debug ("Waiting for %d bytes as sox output", size)
 				buf = self.process.stdout.read (size)
 				if len (buf) > 0:
 					retbuf += buf
-					#~ print "ok"
+					logging.debug ("OK")
 				else:
-					#~ print "Sox EOF!"
+					logging.debug ("Sox EOF!")
 					break
 			except IOError as err:
-				#~ print str (err)
-				pass
-
+				logging.debug (str (err))
+				if err.errno != 11:	# = "Resource temporarily unavailable", meaning no output is available yet from sox
+					raise
 		return retbuf
 
 if __name__ == "__main__":

@@ -34,38 +34,38 @@ class CodecManager:
 	def _setupEncoders (self):
 		self.outputFormats = {}
 		for encoder in Encoders.__all__:
-			try:
-				#~ print "Trying to import encoder: %s" % encoder
-				#~ exec ("import Encoders.%s" % encoder)
-				#~ exec ("encoderModule = Encoders.%s" % encoder)
-				#~ exec ("encoderInstance = encoderModule.%s ()" % encoder)
-				exec ("from AudioTrans.Encoders import %s" % encoder)
-				exec ("encoderInstance = %s.%s ()" % (encoder, encoder))
-				for fmt in encoderInstance.getSupportedExtensions ():
-					self.outputFormats[fmt] = encoderInstance
-			except MissingCoderExe as ex:
-				# Encoder executable not found, ignore
-				pass
-			except Exception as ex:
-				# Could not init encoder for some other reason
-				print "Cannot init encoder \"%s\": %s" % (encoder, str (ex))
-				raise
+			#~ print "Trying to import encoder: %s" % encoder
+			#~ exec ("import Encoders.%s" % encoder)
+			#~ exec ("encoderModule = Encoders.%s" % encoder)
+			#~ exec ("encoderInstance = encoderModule.%s ()" % encoder)
+			exec ("from AudioTrans.Encoders import %s" % encoder)
+			exec ("encoderClass = %s.%s" % (encoder, encoder))
+			for fmt in encoderClass.supportedExtensions:
+				self.outputFormats[fmt] = encoderClass
+			#~ except MissingCoderExe as ex:
+				#~ # Encoder executable not found, ignore
+				#~ pass
+			#~ except Exception as ex:
+				#~ # Could not init encoder for some other reason
+				#~ print "Cannot init encoder \"%s\": %s" % (encoder, str (ex))
+				#~ raise
 
 	def _setupDecoders (self):
 		self.inputFormats = {}
 		for decoder in Decoders.__all__:
-			try:
-				exec ("import Decoders.%s" % decoder)
-				exec ("decoderModule = Decoders.%s" % decoder)
-				exec ("decoderInstance = decoderModule.%s ()" % decoder)
-				for fmt in decoderInstance.getSupportedExtensions ():
-					self.inputFormats[fmt] = decoderInstance
-			except MissingCoderExe as ex:
-				# Decoder executable not found, ignore
-				pass
-			except Exception as ex:
-				# Could not init decoder for some other reason
-				print "Cannot init decoder \"%s\": %s" % (decoder, str (ex))
+			#~ exec ("import Decoders.%s" % decoder)
+			#~ exec ("decoderModule = Decoders.%s" % decoder)
+			#~ exec ("decoderInstance = decoderModule.%s ()" % decoder)
+			exec ("from AudioTrans.Decoders import %s" % decoder)
+			exec ("decoderClass = %s.%s" % (decoder, decoder))
+			for fmt in decoderClass.supportedExtensions:
+				self.inputFormats[fmt] = decoderClass
+			#~ except MissingCoderExe as ex:
+				#~ # Decoder executable not found, ignore
+				#~ pass
+			#~ except Exception as ex:
+				#~ # Could not init decoder for some other reason
+				#~ print "Cannot init decoder \"%s\": %s" % (decoder, str (ex))
 
 	def report (self):
 		import sys
@@ -92,8 +92,8 @@ class CodecManager:
 		if extension == "":
 			raise Exception ("No extension in filename")
 		else:
-			decFact = self.getEncoderForExtension (extension)
-			return decFact.getEncoder (outFilename, quality)
+			encClass = self.getEncoderForExtension (extension)
+			return encClass (outFilename, quality)
 
 	def getDecoderForExtension (self, extension):
 		if extension in self.inputFormats:
@@ -106,8 +106,8 @@ class CodecManager:
 		if extension == "":
 			raise Exception ("No extension in filename")
 		else:
-			decFact = self.getDecoderForExtension (extension)
-			return decFact.getDecoder (inFilename, quality)
+			decClass = self.getDecoderForExtension (extension)
+			return decClass (inFilename)
 
 
 if __name__ == '__main__':

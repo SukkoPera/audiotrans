@@ -20,27 +20,39 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+
 from BaseCoder import BaseCoder, MissingCoderExe
 import Process
 #import Quality
 
 
 class EncoderFactory (BaseCoder):
-	def __init__ (self):
-		super (EncoderFactory, self).__init__ ()
-		print "Using \"%s\" as \"%s\" encoder" % (self.executablePath, "/".join (self.supportedExtensions))
-
-
-	def getEncoder (self, outFilename, quality = None):
+	def __init__ (self, filename, quality):
 		try:
+			super (EncoderFactory, self).__init__ ()
+			logging.debug ("Using \"%s\" as \"%s\" encoder", self.executablePath, "/".join (self.supportedExtensions))
+
+			self.filename = filename
+
 			if quality is None:
-				quality = self.defaultQuality
-			argv = self.makeCmdLine (outFilename, quality)
-			enc = Process.EncoderProcess (argv)
-			return enc, self.endianness
-		except Exception, ex:
-			print "Exception in getEncoder(): %s" % ex.message
-			raise
+				self.quality = self.defaultQuality
+			else:
+				self.quality = quality
+		except:
+			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" decoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
+
+	def getProcess (self):
+		if self.process is None:
+			try:
+				self.process = Process.EncoderProcess (self.makeCmdLine (self.filename, self.quality))
+			except Exception, ex:
+				logger.exception ("Exception in getEncoder(): %s", str (ex))
+				raise
+		return self.process
+
+	def setTag (self, tag):
+		raise NotImplementedError
 
 	#def __del__ (self):
 		#print "Encoder for \"%s\" being destroyed!" % self.outfileext

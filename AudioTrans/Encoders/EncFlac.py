@@ -20,9 +20,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Encoder import EncoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+from Encoder import EncoderFactory
+from Quality import Quality
+from Endianness import Endianness
 
 class EncFlac (EncoderFactory):
 	name = "Official FLAC encoder"

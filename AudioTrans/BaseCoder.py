@@ -20,19 +20,23 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 import utility
 from Quality import Quality
 from Endianness import Endianness
 
-class MissingCoderExe (Exception):
+class CoderException (Exception):
 	pass
 
 class BaseCoder (object):
-	# The following members *MUST* be overridden by child classes."
+	# The following class members *MUST* be overridden by child classes."
 	name = None
 	version = None
 	supportedExtensions = None
 	executable = None
+	executablePath = None
 	endianness = None
 	parametersRaw = None
 	parametersWave = None
@@ -41,14 +45,16 @@ class BaseCoder (object):
 	parametersHQ = None
 	defaultQuality = None
 
+	@classmethod
+	def check (cls):
+		"""Cee if the encoder executable can be found in $PATH"""
+		try:
+			cls.executablePath = utility.findInPath (cls.executable)
+			logger.debug ("Using \"%s\" as \"%s\" decoder", cls.executablePath, "/".join (cls.supportedExtensions))
+		except utility.NotFoundInPathException:
+			raise CoderException ("Cannot find \"%s\" (\"%s\" encoder) in path" % (cls.executable, "/".join (cls.supportedExtensions)))
 
 	def __init__ (self):
-		# First of all see if the encoder executable can be found in $PATH
-		try:
-			self.executablePath = utility.findInPath (self.executable)
-		except utility.NotFoundInPathException:
-			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" encoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
-
 		self.process = None
 
 	def getName (self):

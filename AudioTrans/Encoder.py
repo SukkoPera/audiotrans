@@ -21,26 +21,23 @@
 ###########################################################################
 
 import logging
+logger = logging.getLogger (__name__)
 
-from BaseCoder import BaseCoder, MissingCoderExe
+from BaseCoder import BaseCoder, CoderException
 import Process
-#import Quality
 
 
 class EncoderFactory (BaseCoder):
+	# True if decoder requires raw input
+	rawInput = False
+
 	def __init__ (self, filename, quality):
-		try:
-			super (EncoderFactory, self).__init__ ()
-			logging.debug ("Using \"%s\" as \"%s\" encoder", self.executablePath, "/".join (self.supportedExtensions))
-
-			self.filename = filename
-
-			if quality is None:
-				self.quality = self.defaultQuality
-			else:
-				self.quality = quality
-		except:
-			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" decoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
+		super (EncoderFactory, self).__init__ ()
+		self.filename = filename
+		if quality is None:
+			self.quality = self.defaultQuality
+		else:
+			self.quality = quality
 
 	def getProcess (self):
 		if self.process is None:

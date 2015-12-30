@@ -20,9 +20,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 from AudioTrans.Decoder import DecoderFactory
-from AudioTrans.Quality import Quality
 from AudioTrans.Endianness import Endianness
+from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
 from mutagen.flac import FLAC as mutaFLAC
@@ -41,18 +44,30 @@ class DecFlac (DecoderFactory):
 
 	def getTag (self):
 		m = mutaFLAC (self.filename)
+		logger.info ("Available tag fields: %s", m)
 		tag = AudioTag ()
-		tag.artist = m["artist"]
-		tag.album = m["album"]
-		tag.title = m["title"]
-		tag.year = m["originalyear"]
-		tag.comment = m["comment"]
-		#~ print m
+		if "artist" in m:
+			tag.artist = m["artist"]
+		if "album" in m:
+			tag.album = m["album"]
+		if "title" in m:
+			tag.title = m["title"]
+		if "date" in m:
+			tag.year = m["date"]
+		if "comment" in m:
+			tag.comment = m["comment"]
+		if "tracknumber" in m:
+			tag.trackNo = m["tracknumber"]
+		if "genre" in m:
+			tag.genre = m["genre"]
 		return tag
 
 if __name__ == '__main__':
-	decFact = DecFlac ()
-	dec = decFact.getDefaultDecoder ("src.flac")
+	logging.basicConfig (level = logging.INFO)
+	DecFlac.check ()
+	decFact = DecFlac ("src.flac")
+	print decFact.getTag ()
+	dec = decFact.getProcess ()
 	buf = dec.read (1000)
 	print buf
 	dec.close ()

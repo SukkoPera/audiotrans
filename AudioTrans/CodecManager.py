@@ -20,9 +20,12 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 import Encoders
 import Decoders
-from BaseCoder import MissingCoderExe
+from BaseCoder import CoderException
 from Quality import Quality
 
 
@@ -34,38 +37,34 @@ class CodecManager:
 	def _setupEncoders (self):
 		self.outputFormats = {}
 		for encoder in Encoders.__all__:
-			#~ print "Trying to import encoder: %s" % encoder
-			#~ exec ("import Encoders.%s" % encoder)
-			#~ exec ("encoderModule = Encoders.%s" % encoder)
-			#~ exec ("encoderInstance = encoderModule.%s ()" % encoder)
 			exec ("from AudioTrans.Encoders import %s" % encoder)
 			exec ("encoderClass = %s.%s" % (encoder, encoder))
 			for fmt in encoderClass.supportedExtensions:
-				self.outputFormats[fmt] = encoderClass
-			#~ except MissingCoderExe as ex:
-				#~ # Encoder executable not found, ignore
-				#~ pass
-			#~ except Exception as ex:
-				#~ # Could not init encoder for some other reason
-				#~ print "Cannot init encoder \"%s\": %s" % (encoder, str (ex))
-				#~ raise
+				try:
+					encoderClass.check ()
+					self.outputFormats[fmt] = encoderClass
+				except CoderException as ex:
+					# Encoder executable not found, ignore
+					pass
+				except Exception as ex:
+					# Could not init encoder for some other reason
+					logger.warning ("Cannot init encoder \"%s\": %s", encoder, str (ex))
 
 	def _setupDecoders (self):
 		self.inputFormats = {}
 		for decoder in Decoders.__all__:
-			#~ exec ("import Decoders.%s" % decoder)
-			#~ exec ("decoderModule = Decoders.%s" % decoder)
-			#~ exec ("decoderInstance = decoderModule.%s ()" % decoder)
 			exec ("from AudioTrans.Decoders import %s" % decoder)
 			exec ("decoderClass = %s.%s" % (decoder, decoder))
 			for fmt in decoderClass.supportedExtensions:
-				self.inputFormats[fmt] = decoderClass
-			#~ except MissingCoderExe as ex:
-				#~ # Decoder executable not found, ignore
-				#~ pass
-			#~ except Exception as ex:
-				#~ # Could not init decoder for some other reason
-				#~ print "Cannot init decoder \"%s\": %s" % (decoder, str (ex))
+				try:
+					decoderClass.check ()
+					self.inputFormats[fmt] = decoderClass
+				except CoderException as ex:
+					# Decoder executable not found, ignore
+					pass
+				except Exception as ex:
+					# Could not init decoder for some other reason
+					logger.warning ("Cannot init decoder \"%s\": %s", decoder, str (ex))
 
 	def report (self):
 		import sys

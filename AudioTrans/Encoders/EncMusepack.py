@@ -20,9 +20,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Encoder import EncoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+import logging
+logger = logging.getLogger (__name__)
+
+from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Endianness import Endianness
+from AudioTrans.Quality import Quality
+from AudioTrans.AudioTag import AudioTag
 
 # NOTE: mppenc only supports WAVE files through stdin
 

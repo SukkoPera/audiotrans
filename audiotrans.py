@@ -22,6 +22,12 @@
 
 import sys
 import os
+import logging
+
+logging.basicConfig (level = logging.INFO)
+#~ logger = logging.getLogger (__name__)
+
+
 from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
 from AudioTrans.ByteSwapper import ByteSwapper

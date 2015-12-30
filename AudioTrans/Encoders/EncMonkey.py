@@ -20,9 +20,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Encoder import EncoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+import logging
+logger = logging.getLogger (__name__)
+
+from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Endianness import Endianness
+from AudioTrans.Quality import Quality
+from AudioTrans.AudioTag import AudioTag
 
 # WARNING: The stock "mac" doesn't allow reading from stdin, a patched version is necessary.
 # See http://www.etree.org/shnutils/shntool/
@@ -42,7 +46,7 @@ class EncMonkey (EncoderFactory):
 
 	def makeCmdLine (self, outFilename, quality, raw = True):
 		if raw:
-			raise Exception ("Encoder does not support raw format")			
+			raise Exception ("Encoder does not support raw format")
 		assert (outFilename and outFilename != "")
 		parameters = self.getQualityParameters (quality)
 		parameters[1] = outFilename

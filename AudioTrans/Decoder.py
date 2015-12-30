@@ -21,24 +21,23 @@
 ###########################################################################
 
 import logging
+logger = logging.getLogger (__name__)
 
-from BaseCoder import BaseCoder, MissingCoderExe
+from BaseCoder import BaseCoder, CoderException
 import Process
 
 
 class DecoderFactory (BaseCoder):
-	def __init__ (self, filename):
-		try:
-			super (DecoderFactory, self).__init__ ()
-			logging.debug ("Using \"%s\" as \"%s\" decoder", self.executablePath, "/".join (self.supportedExtensions))
+	# True if decoder only produces raw output
+	rawOutput = False
 
-			self.filename = filename
-		except:
-			raise MissingCoderExe ("Cannot find \"%s\" (\"%s\" decoder) in path" % (self.executable, "/".join (self.supportedExtensions)))
+	def __init__ (self, filename):
+		super (DecoderFactory, self).__init__ ()
+		self.filename = filename
 
 	def _makeCmdLine (self, raw = False):
 		assert (self.filename is not None and self.filename != "")
-		self.cmdLine = [self.executablePath]
+		self.cmdLine = [self.__class__.executablePath]
 		if raw:
 			assert self.parametersRaw is not None
 			self.cmdLine.extend (self.parametersRaw)

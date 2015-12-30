@@ -21,7 +21,7 @@
 ###########################################################################
 
 import logging
-#~ logging.basicConfig (level = logging.DEBUG)
+logger = logging.getLogger (__name__)
 
 from Process import FilterProcess
 import utility as utility
@@ -40,6 +40,7 @@ class ByteSwapper (FilterProcess):
 
 		# Raw input options
 		if 0: #or rawin:
+			logging.info ("Enabling sox filter raw input")
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 		else:
 			cmdline += ["-t", "wav"]
@@ -47,16 +48,17 @@ class ByteSwapper (FilterProcess):
 		# Input filename: stdin
 		cmdline += ["-"]
 
-		if 1 or rawout:
+		if enc.rawInput:
+			logging.info ("Enabling sox filter raw output")
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 
 		if enc.endianness != dec.endianness:
+			logging.info ("Enabling sox filter endianness change")
 			cmdline += ["-x"]
 
 		# Output filename: stdout
 		cmdline += ["-"]
 
-		#~ print " ".join (cmdline)
 		super (ByteSwapper, self).__init__ (cmdline)
 
 		self.input_ = dec.getProcess ()
@@ -70,7 +72,7 @@ class ByteSwapper (FilterProcess):
 		while not self._eof and len (self._buf) < self.READ_BUFSIZE:
 			buf = self.input_.read (self.READ_BUFSIZE)
 			if len (buf) == 0:
-				logging.debug ("decoder input for sox EOF!")
+				logger.debug ("decoder input for sox EOF!")
 				self._eof = True
 			self._buf += buf
 
@@ -80,28 +82,28 @@ class ByteSwapper (FilterProcess):
 		while len (retbuf) < size:
 			try:
 				self._fillBuf ()
-				logging.debug ("Buffer: %d bytes available", len (self._buf))
+				logger.debug ("Buffer: %d bytes available", len (self._buf))
 				l = min (self.SOX_BUFSIZE, len (self._buf))
 				if l > 0:
-					logging.debug ("Writing %d bytes to sox input", l)
+					logger.debug ("Writing %d bytes to sox input", l)
 					self.process.stdin.write (self._buf[:l])
 					self.process.stdin.flush ()		# This is essential!
 					#~ if self._eof:
 						#~ self.process.stdin.close ()
 					self._buf = self._buf[l:]
 				else:
-					logging.debug ("Nothing to write!")
+					logger.debug ("Nothing to write!")
 
-				logging.debug ("Waiting for %d bytes as sox output", size)
+				logger.debug ("Waiting for %d bytes as sox output", size)
 				buf = self.process.stdout.read (size)
 				if len (buf) > 0:
 					retbuf += buf
-					logging.debug ("OK")
+					logger.debug ("OK")
 				else:
-					logging.debug ("Sox EOF!")
+					logger.debug ("Sox EOF!")
 					break
 			except IOError as err:
-				logging.debug (str (err))
+				logger.debug (str (err))
 				if err.errno != 11:	# = "Resource temporarily unavailable", meaning no output is available yet from sox
 					raise
 		return retbuf

@@ -20,9 +20,13 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
-from ..Decoder import DecoderFactory
-from ..Quality import Quality
-from ..Endianness import Endianness
+import logging
+logger = logging.getLogger (__name__)
+
+from AudioTrans.Decoder import DecoderFactory
+from AudioTrans.Endianness import Endianness
+from AudioTrans.Quality import Quality
+from AudioTrans.AudioTag import AudioTag
 
 class DecWav (DecoderFactory):
 	name = "sox WAV decoder"
@@ -34,7 +38,7 @@ class DecWav (DecoderFactory):
 	parametersRaw = ["INFILE", "-t", "raw", "-r", "44100", "-s", "-2", "-c", "2", "-"]
 	parametersHQ = ["INFILE", "-"]
 	defaultQuality = Quality.HIGH
-	
+
 	def makeCmdLine (self, inFilename, quality, raw = True):
 		assert (inFilename and inFilename != "")
 		if raw:

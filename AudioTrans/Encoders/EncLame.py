@@ -20,6 +20,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 from AudioTrans.Encoder import EncoderFactory
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
@@ -34,36 +37,16 @@ class EncLame (EncoderFactory):
 	supportedExtensions = ["mp3"]
 	executable = "lame"
 	endianness = Endianness.LITTLE
+	rawInput = True
 	parametersRaw = ["-r", "-s", "44100", "--bitwidth", "16"]
 	parametersLQ = ["--alt-preset", "128", "-"]
 	parametersMQ = ["--alt-preset", "160", "-"]
 	parametersHQ = ["--preset", "extreme", "-B", "192", "-b", "96", "-"]
 	defaultQuality = Quality.MEDIUM
 
-	#~ def __init__ (self):
-		#~ super (EncLame, self).__init__ (self)
-
-#	def __makeCmdLine (self):
-#		tmp = EncoderFactory.__makeCmdLine (self)
-#		if self.title:
-#			tmp.extend (["--tt", self.title])
-#		if self.artist:
-#			tmp.extend (["--ta", self.artist])
-#		if self.album:
-#			tmp.extend (["--tl", self.album])
-#		if self.year:
-#			tmp.extend (["--ty", self.year])
-#		if self.trackNo:
-#			tmp.extend (["--tn", `self.trackNo`])
-#		if self.genre:
-#			tmp.extend (["--tg", self.genre])
-#		if self.comment:
-#			tmp.extend (["--tc", self.comment])
-#		tmp.append ("--id3v1-only")
-#		self.cmdLine = tmp
-#		return tmp
-
 	def setTag (self, tag):
+		logger.debug ("Valid ID3 fields: %s", ", ".join (sorted (EasyID3.valid_keys.keys ())))
+
 		try:
 			audio = EasyID3 (self.filename)
 		except mutagen.id3.ID3NoHeaderError:
@@ -73,13 +56,21 @@ class EncLame (EncoderFactory):
 		audio["artist"] = tag.artist
 		audio["album"] = tag.album
 		audio["title"] = tag.title
-		audio["originaldate"] = tag.year
+		audio["date"] = tag.year
 		#~ audio["comment"] = tag["comment"]
+		audio["tracknumber"] = tag.trackNo
+		audio["genre"] = tag.genre
 		audio.save ()
 
 if __name__ == '__main__':
-	encFact = EncLame ()
-	enc = encFact.getDefaultEncoder ("test.mp3")
+	logging.basicConfig (level = logging.DEBUG)
+	EncLame.check ()
+	encFact = EncLame ("test.mp3", Quality.MEDIUM)
+	enc = encFact.getProcess ()
 	enc.write ("*" * 1000)
 	enc.close ()
 
+	tag = AudioTag ()
+	tag.artist = "artist"
+	tag.album = "album"
+	encFact.setTag (tag)

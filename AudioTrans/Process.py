@@ -20,6 +20,9 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 import os
 import subprocess
 
@@ -28,15 +31,16 @@ class ProcessException (Exception):
 
 class Process (object):
 	"""Base class for runnable objects."""
-	def __init__ (self, cmdLine, debug = 1):
+	def __init__ (self, cmdLine):
 		"""Starts the process and returns a pipe to it."""
 		self._cmdLine = cmdLine
-		self._debug = debug
-		if debug:
-			print "Starting process: %s" % " ".join (self._cmdLine)
+		self._devnull = open (os.devnull)
+		logger.info ("Starting process: %s" % " ".join (self._cmdLine))
 		self.process = self._start ()
-		if debug:
-			print "Process started successfully, pid = %d" % self.process.pid
+		logger.info ("Process started successfully, pid = %d", self.process.pid)
+
+	def __del__ (self):
+		self._devnull.close ()
 
 	# Please override!
 	def _start (self):
@@ -45,9 +49,10 @@ class Process (object):
 	def close (self):
 		ret = self.process.wait ()
 		if ret != 0:
+			logger.error ("Process returned %d", ret)
 			raise ProcessException ("ERROR: Process returned %d" % ret)
-		elif self._debug:
-			print "Process terminated correctly"
+		else:
+			logger.info ("Process terminated correctly")
 
 		return ret
 
@@ -57,7 +62,7 @@ class DecoderProcess (Process):
 		super (DecoderProcess, self).__init__ (cmdLine)
 
 	def _start (self):
-		return subprocess.Popen (self._cmdLine, stdin = open (os.devnull), stdout = subprocess.PIPE, stderr = open (os.devnull), bufsize = 0, close_fds = True)
+		return subprocess.Popen (self._cmdLine, stdin = self._devnull, stdout = subprocess.PIPE, stderr = self._devnull, bufsize = 0, close_fds = True)
 
 	def read (self, size):
 		assert (self.process)
@@ -76,7 +81,7 @@ class EncoderProcess (Process):
 		super (EncoderProcess, self).__init__ (cmdLine)
 
 	def _start (self):
-		return subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = open (os.devnull), stderr = open (os.devnull), bufsize = 0, close_fds = True)
+		return subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = self._devnull, stderr = self._devnull, bufsize = 0, close_fds = True)
 
 	def write (self, str):
 		assert (self.process)
@@ -96,7 +101,7 @@ class FilterProcess (Process):
 		super (FilterProcess, self).__init__ (cmdLine)
 
 	def _start (self):
-		ret = subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = open (os.devnull), bufsize = 0, close_fds = True)
+		ret = subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = self._devnull, bufsize = 0, close_fds = True)
 		fl = fcntl.fcntl (ret.stdout, fcntl.F_GETFL)
 		fcntl.fcntl (ret.stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 		return ret

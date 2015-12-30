@@ -47,7 +47,7 @@ class BaseCoder (object):
 
 	@classmethod
 	def check (cls):
-		"""Cee if the encoder executable can be found in $PATH"""
+		"""See if the encoder executable can be found in $PATH"""
 		try:
 			cls.executablePath = utility.findInPath (cls.executable)
 			logger.debug ("Using \"%s\" as \"%s\" decoder", cls.executablePath, "/".join (cls.supportedExtensions))

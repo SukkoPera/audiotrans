@@ -35,11 +35,6 @@ class DecFlac (Decoder):
 	version = "0.1"
 	supportedExtensions = ["flac"]
 	executable = "flac"
-	# There's no reason to use big endianess, apart from testing Filters
-	#~ endianness = Endianness.BIG
-	#~ parametersRaw = ["--force-raw-format", "--endian=big", "--sign=signed"]
-	endianness = Endianness.LITTLE
-	#~ parametersRaw = ["--force-raw-format", "--endian=little", "--sign=signed"]
 	parameters = ["--decode", "--decode-through-errors", "-c"]
 
 	def getTag (self):

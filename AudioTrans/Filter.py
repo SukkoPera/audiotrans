@@ -39,7 +39,7 @@ class Filter (FilterProcess):
 		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE)]
 
 		# Raw input options
-		if 0: #or rawin:
+		if dec.rawOutput:
 			logging.info ("Enabling sox filter raw input")
 			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
 		else:
@@ -50,11 +50,11 @@ class Filter (FilterProcess):
 
 		if enc.rawInput:
 			logging.info ("Enabling sox filter raw output")
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian", "little"]
 
-		if enc.endianness != dec.endianness:
-			logging.info ("Enabling sox filter endianness change")
-			cmdline += ["-x"]
+			#~ if enc.endianness != dec.endianness:
+				#~ logging.info ("Enabling sox filter endianness change")
+				#~ cmdline += ["-x"]
 
 		# Output filename: stdout
 		cmdline += ["-"]

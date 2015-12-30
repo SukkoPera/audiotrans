@@ -23,12 +23,12 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Encoder import Encoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
-class EncOggVorbis (EncoderFactory):
+class EncOggVorbis (Encoder):
 	name = "Official OGG Vorbis encoder"
 	version = "0.1"
 	supportedExtensions = ["ogg"]

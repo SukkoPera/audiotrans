@@ -27,12 +27,12 @@ from BaseCoder import BaseCoder, CoderException
 import Process
 
 
-class EncoderFactory (BaseCoder):
+class Encoder (BaseCoder):
 	# True if decoder requires raw input
 	rawInput = False
 
 	def __init__ (self, filename, quality):
-		super (EncoderFactory, self).__init__ ()
+		super (Encoder, self).__init__ ()
 		self.filename = filename
 		if quality is None:
 			self.quality = self.defaultQuality

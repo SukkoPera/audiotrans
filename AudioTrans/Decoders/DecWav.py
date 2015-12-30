@@ -23,12 +23,12 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Decoder import DecoderFactory
+from AudioTrans.Decoder import Decoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
-class DecWav (DecoderFactory):
+class DecWav (Decoder):
 	name = "sox WAV decoder"
 	version = "0.1"
 	supportedExtensions = ["wav"]

@@ -23,12 +23,12 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Encoder import Encoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
-class EncFaac (EncoderFactory):
+class EncFaac (Encoder):
 	name = "FAAC MPEG-4 encoder"
 	version = "0.2"
 	supportedExtensions = ["mp4", "m4a", "aac"]

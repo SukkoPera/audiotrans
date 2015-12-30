@@ -30,7 +30,7 @@ logging.basicConfig (level = logging.INFO)
 
 from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
-from AudioTrans.ByteSwapper import ByteSwapper
+from AudioTrans.Filter import Filter
 
 PROGRAM_VERSION = "20151223"
 BUFSIZE = 1024 * 8
@@ -49,7 +49,7 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferT
 		step = 0
 		dec = codecsMgr.getDecoder (infile)
 		enc = codecsMgr.getEncoder (outfile, quality)
-		filt = ByteSwapper (dec, enc)
+		filt = Filter (dec, enc)
 		decproc = enc.getProcess ()
 		encproc = enc.getProcess ()
 		buf = filt.read (BUFSIZE)

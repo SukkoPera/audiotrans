@@ -23,7 +23,7 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Encoder import Encoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
@@ -33,7 +33,7 @@ from AudioTrans.AudioTag import AudioTag
 
 # NOTE: This does not support raw format audio :( - Then I guess it just won't work!
 
-class EncMonkey (EncoderFactory):
+class EncMonkey (Encoder):
 	name = "Official Monkey's Audio encoder"
 	version = "0.1"
 	supportedExtensions = ["ape"]

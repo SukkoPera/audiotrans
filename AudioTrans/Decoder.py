@@ -27,12 +27,12 @@ from BaseCoder import BaseCoder, CoderException
 import Process
 
 
-class DecoderFactory (BaseCoder):
+class Decoder (BaseCoder):
 	# True if decoder only produces raw output
 	rawOutput = False
 
 	def __init__ (self, filename):
-		super (DecoderFactory, self).__init__ ()
+		super (Decoder, self).__init__ ()
 		self.filename = filename
 
 	def _makeCmdLine (self, raw = False):

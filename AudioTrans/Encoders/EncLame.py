@@ -23,7 +23,7 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Encoder import Encoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
@@ -31,7 +31,7 @@ from AudioTrans.AudioTag import AudioTag
 import mutagen
 from mutagen.easyid3 import EasyID3
 
-class EncLame (EncoderFactory):
+class EncLame (Encoder):
 	name = "LAME MP3 encoder"
 	version = "0.1"
 	supportedExtensions = ["mp3"]

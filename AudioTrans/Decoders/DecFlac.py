@@ -23,19 +23,19 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Decoder import DecoderFactory
+from AudioTrans.Decoder import Decoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
 from mutagen.flac import FLAC as mutaFLAC
 
-class DecFlac (DecoderFactory):
+class DecFlac (Decoder):
 	name = "Official FLAC decoder"
 	version = "0.1"
 	supportedExtensions = ["flac"]
 	executable = "flac"
-	# There's no reason to use big endianess, apart from testing ByteSwappers
+	# There's no reason to use big endianess, apart from testing Filters
 	#~ endianness = Endianness.BIG
 	#~ parametersRaw = ["--force-raw-format", "--endian=big", "--sign=signed"]
 	endianness = Endianness.LITTLE

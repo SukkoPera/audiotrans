@@ -27,7 +27,7 @@ from Process import FilterProcess
 import utility as utility
 
 
-class ByteSwapper (FilterProcess):
+class Filter (FilterProcess):
 	SOX_EXE = "sox"
 	SOX_BUFSIZE = 8192		# 8192 is the default for SoX v14.4.0
 	READ_BUFSIZE = 1024 * 32
@@ -59,7 +59,7 @@ class ByteSwapper (FilterProcess):
 		# Output filename: stdout
 		cmdline += ["-"]
 
-		super (ByteSwapper, self).__init__ (cmdline)
+		super (Filter, self).__init__ (cmdline)
 
 		self.input_ = dec.getProcess ()
 		#~ self._enc = enc
@@ -109,4 +109,4 @@ class ByteSwapper (FilterProcess):
 		return retbuf
 
 if __name__ == "__main__":
-	bs = ByteSwapper (None)
+	bs = Filter (None)

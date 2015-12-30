@@ -23,14 +23,14 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from AudioTrans.Encoder import EncoderFactory
+from AudioTrans.Encoder import Encoder
 from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
 # NOTE: mppenc only supports WAVE files through stdin
 
-class EncMusepack (EncoderFactory):
+class EncMusepack (Encoder):
 	name = "Official Musepack encoder"
 	version = "0.1"
 	supportedExtensions = ["mpc"]

@@ -60,35 +60,6 @@ class BaseCoder (object):
 	def getName (self):
 		return "%s v%s" % (self.name, self.version)
 
-	def getQualityParameters (self, quality):
-		if quality == Quality.LOW:
-			parameters = self.parametersLQ
-		elif quality == Quality.MEDIUM:
-			parameters = self.parametersMQ
-		elif quality == Quality.HIGH:
-			parameters = self.parametersHQ
-		else:
-			raise Exception ("No parameters available for quality setting \"%\"" % quality)
-		return parameters
-
-	def makeCmdLine (self, outFilename, quality, raw = True):
-		"""Makes up the encoder command line. This method just appends
-		the output filename to the executable and options provided when
-		creating the encoder object, if any. If the encoder needs the
-		output filename in a different position, then this method must
-		be overridden."""
-
-		assert (outFilename and outFilename != "")
-		parameters = self.getQualityParameters (quality)
-		self.cmdLine = [self.executablePath]
-		if raw and self.parametersRaw is not None:
-			self.cmdLine.extend (self.parametersRaw)
-		else:		# TODO!
-			raise Exception ("Encoder does not support raw format")
-		self.cmdLine.extend (parameters)
-		self.cmdLine.append (outFilename)
-		return self.cmdLine
-
 #	def __makeOutputFilename (self, basename):
 #		"""Makes up the destination filename, usually appending the encoder extension to the filename."""
 #		self.outfilename = "%s.%s" % (basename, self.outfileext)

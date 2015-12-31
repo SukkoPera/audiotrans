@@ -32,7 +32,7 @@ from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
 from AudioTrans.Filter import Filter
 
-PROGRAM_VERSION = "20151223"
+PROGRAM_VERSION = "20151231"
 BUFSIZE = 1024 * 8
 
 def progress (stepNo):
@@ -65,10 +65,13 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferT
 		decproc.close ()
 
 		# Transfer tag
-		if transferTag:
-			tag = dec.getTag ()
-			#~ print tag
-			enc.setTag (tag)
+		try:
+			if transferTag:
+				tag = dec.getTag ()
+				#~ print tag
+				enc.setTag (tag)
+		except NotImplementedError:
+			print "Cannot transfer tag"
 
 		print "\rTranscoding ended"
 

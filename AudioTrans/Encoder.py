@@ -24,6 +24,7 @@ import logging
 logger = logging.getLogger (__name__)
 
 from BaseCoder import BaseCoder, CoderException
+from Quality import Quality
 import Process
 
 
@@ -39,10 +40,34 @@ class Encoder (BaseCoder):
 		else:
 			self.quality = quality
 
+	def _getQualityParameters (self):
+		if self.quality == Quality.LOW:
+			parameters = self.parametersLQ
+		elif self.quality == Quality.MEDIUM:
+			parameters = self.parametersMQ
+		elif self.quality == Quality.HIGH:
+			parameters = self.parametersHQ
+		else:
+			raise Exception ("No parameters available for quality setting \"%\"" % self.quality)
+		return parameters
+
+	def _makeCmdLine (self):
+		"""Makes up the encoder command line. This method just appends
+		the output filename to the executable and options provided when
+		creating the encoder object, if any. If the encoder needs the
+		output filename in a different position, then this method must
+		be overridden."""
+
+		assert (self.filename and self.filename != "")
+		self.cmdLine = [self.executablePath]
+		self.cmdLine.extend (self._getQualityParameters ())
+		self.cmdLine.append (self.filename)
+		return self.cmdLine
+
 	def getProcess (self):
 		if self.process is None:
 			try:
-				self.process = Process.EncoderProcess (self.makeCmdLine (self.filename, self.quality))
+				self.process = Process.EncoderProcess (self._makeCmdLine ())
 			except Exception, ex:
 				logger.exception ("Exception in getEncoder(): %s", str (ex))
 				raise

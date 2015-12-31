@@ -55,6 +55,8 @@ class Filter (FilterProcess):
 			#~ if enc.endianness != dec.endianness:
 				#~ logging.info ("Enabling sox filter endianness change")
 				#~ cmdline += ["-x"]
+		else:
+			cmdline += ["-t", "wav"]
 
 		# Output filename: stdout
 		cmdline += ["-"]

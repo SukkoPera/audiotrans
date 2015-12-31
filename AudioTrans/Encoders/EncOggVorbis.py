@@ -28,20 +28,48 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.oggvorbis import OggVorbis as mutaOggVorbis
+
 class EncOggVorbis (Encoder):
 	name = "Official OGG Vorbis encoder"
-	version = "0.1"
+	version = "20151231"
 	supportedExtensions = ["ogg"]
 	executable = "oggenc"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["--raw", "--raw-rate=44100", "--raw-chan=2", "--raw-bits=16", "--raw-endianness=0"]		# 0 is little-endian
-	parametersLQ = ["-q", "1", "-", "-o"]
-	parametersMQ = ["-q", "3", "-", "-o"]
-	parametersHQ = ["-q", "6", "-", "-o"]
+	parametersCommon = ["--quiet"]
+	parametersLQ = parametersCommon + ["-q", "1", "-", "-o"]
+	parametersMQ = parametersCommon + ["-q", "3", "-", "-o"]
+	parametersHQ = parametersCommon + ["-q", "6", "-", "-o"]
 	defaultQuality = Quality.MEDIUM
 
+	def setTag (self, tag):
+		audio = mutaOggVorbis (self.filename)
+		if tag.artist is not None:
+			audio["artist"] = tag.artist
+		if tag.album is not None:
+			audio["album"] = tag.album
+		if tag.title is not None:
+			audio["title"] = tag.title
+		if tag.year is not None:
+			audio["date"] = tag.year
+		if tag.comment is not None:
+			audio["comment"] = tag.comment
+		if tag.trackNo is not None:
+			audio["tracknumber"] = tag.trackNo
+		if tag.genre is not None:
+			audio["genre"] = tag.genre
+		audio.save ()
+
 if __name__ == '__main__':
-	encFact = EncOggVorbis ()
-	enc = encFact.getDefaultEncoder ("test.ogg")
+	# This won't work as encoder expects valid wav data
+	logging.basicConfig (level = logging.DEBUG)
+	EncOggVorbis.check ()
+	encFact = EncOggVorbis ("test.ogg", Quality.MEDIUM)
+	enc = encFact.getProcess ()
 	enc.write ("*" * 1000)
 	enc.close ()
+
+	tag = AudioTag ()
+	tag.artist = "artist"
+	tag.album = "album"
+	encFact.setTag (tag)

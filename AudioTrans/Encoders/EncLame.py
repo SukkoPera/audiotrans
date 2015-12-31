@@ -38,10 +38,10 @@ class EncLame (Encoder):
 	executable = "lame"
 	endianness = Endianness.LITTLE
 	rawInput = True
-	parametersRaw = ["-r", "-s", "44100", "--bitwidth", "16"]
-	parametersLQ = ["--alt-preset", "128", "-"]
-	parametersMQ = ["--alt-preset", "160", "-"]
-	parametersHQ = ["--preset", "extreme", "-B", "192", "-b", "96", "-"]
+	parametersCommon = ["-r", "-s", "44100", "--bitwidth", "16"]
+	parametersLQ = parametersCommon + ["--alt-preset", "128", "-"]
+	parametersMQ = parametersCommon + ["--alt-preset", "160", "-"]
+	parametersHQ = parametersCommon + ["--preset", "extreme", "-B", "192", "-b", "96", "-"]
 	defaultQuality = Quality.MEDIUM
 
 	def setTag (self, tag):

@@ -39,8 +39,9 @@ class Decoder (BaseCoder):
 		assert (self.filename is not None and self.filename != "")
 		self.cmdLine = [self.__class__.executablePath]
 		if raw:
-			assert self.parametersRaw is not None
-			self.cmdLine.extend (self.parametersRaw)
+			raise NotImplementedError
+			#~ assert self.parametersRaw is not None
+			#~ self.cmdLine.extend (self.parametersRaw)
 		self.cmdLine.extend (self.parameters)
 		self.cmdLine.append (self.filename)
 		return self.cmdLine

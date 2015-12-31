@@ -42,9 +42,9 @@ def progress (stepNo):
 
 
 def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferTag = True):
-	print "%s -> %s" % (infile, outfile)
+	print >> sys.stderr, "%s -> %s" % (infile, outfile)
 	if os.path.isfile (outfile) and not overwrite:
-		print "- Skipping because \"%s\" already exists" % outfile
+		print >> sys.stderr, "- Skipping because \"%s\" already exists" % outfile
 	else:
 		step = 0
 		dec = codecsMgr.getDecoder (infile)
@@ -71,7 +71,9 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferT
 				#~ print tag
 				enc.setTag (tag)
 		except NotImplementedError:
-			print "Cannot transfer tag"
+			print >> sys.stderr, "ERROR: Cannot transfer tag"
+		except SyntaxError:
+			print >> sys.stderr, "WARNING: Output format does not support tags"
 
 		print "\rTranscoding ended"
 
@@ -112,7 +114,7 @@ def main ():
 		if len (inputFiles) > 1 and not options.outputFile[0] == ".":
 			# More than an input file was passed, but a single non-".xxx"
 			# output file was given
-			print "When specifying more than an input file, you must use .xxx as output file"
+			print >> sys.stderr, "When specifying more than an input file, you must use .xxx as output file"
 		else:
 			# Init CM
 			cm = CodecManager ()
@@ -120,7 +122,7 @@ def main ():
 				outFile = makeOutputFilename (inputFile, options.outputFile)
 				transcode (cm, inputFile, outFile, options.output_quality, options.overwrite)
 	else:
-		print "Please specify at least an input and an output file!"
+		print >> sys.stderr, "Please specify at least an input and an output file!"
 
 if __name__ == '__main__':
 	main ()

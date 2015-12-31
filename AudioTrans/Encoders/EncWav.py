@@ -35,10 +35,14 @@ class EncWav (Encoder):
 	executable = "sox"
 	endianness = Endianness.LITTLE
 	#~ parametersRaw = ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-"]
-	parametersLQ = ["-t", "wav", "-"]
+	parametersLQ = ["-", "-t", "wav"]
 	parametersMQ = parametersLQ		# Quality is really always the same :)
 	parametersHQ = parametersLQ
 	defaultQuality = Quality.HIGH
+
+	def setTag (self, tag):
+		# WAV does not support tags
+		raise SyntaxError
 
 if __name__ == '__main__':
 	encFact = EncWav ()

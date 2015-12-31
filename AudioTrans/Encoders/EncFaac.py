@@ -28,17 +28,36 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.apev2 import APEv2File as mutaMP4
+
 class EncFaac (Encoder):
 	name = "FAAC MPEG-4 encoder"
-	version = "0.2"
+	version = "20151231"
 	supportedExtensions = ["mp4", "m4a", "aac"]
 	executable = "faac"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["-P", "-R", "44100", "-B", "16", "-C", "2", "-X"]
 	parametersLQ = ["-w", "-q", "75", "-c", "17000", "-", "-o"]
 	parametersMQ = ["-w", "-q", "100", "-c", "18000",  "-", "-o"]
 	parametersHQ = ["-w", "-q", "130", "-c", "20000", "-", "-o"]
 	defaultQuality = Quality.MEDIUM
+
+	def setTag (self, tag):
+		audio = mutaMP4 (self.filename)
+		if tag.artist is not None:
+			audio["artist"] = tag.artist
+		if tag.album is not None:
+			audio["album"] = tag.album
+		if tag.title is not None:
+			audio["title"] = tag.title
+		if tag.year is not None:
+			audio["date"] = tag.year
+		if tag.comment is not None:
+			audio["comment"] = tag.comment
+		if tag.trackNo is not None:
+			audio["tracknumber"] = tag.trackNo
+		if tag.genre is not None:
+			audio["genre"] = tag.genre
+		audio.save ()
 
 if __name__ == '__main__':
 	encFact = EncFaac ()

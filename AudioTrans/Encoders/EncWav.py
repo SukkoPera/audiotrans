@@ -30,14 +30,14 @@ from AudioTrans.AudioTag import AudioTag
 
 class EncWav (Encoder):
 	name = "sox WAV encoder"
-	version = "0.1"
+	version = "20151231"
 	supportedExtensions = ["wav"]
 	executable = "sox"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-"]
-	#~ parametersLQ = ["--fast", "-f", "-", "-o"]
-	#~ parametersMQ = ["-5", "-f", "-", "-o"]
-	parametersHQ = ["-t", "wav"]
+	#~ parametersRaw = ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "-"]
+	parametersLQ = ["-t", "wav", "-"]
+	parametersMQ = parametersLQ		# Quality is really always the same :)
+	parametersHQ = parametersLQ
 	defaultQuality = Quality.HIGH
 
 if __name__ == '__main__':

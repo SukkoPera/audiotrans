@@ -33,7 +33,7 @@ from mutagen.easyid3 import EasyID3
 
 class EncLame (Encoder):
 	name = "LAME MP3 encoder"
-	version = "0.1"
+	version = "20151231"
 	supportedExtensions = ["mp3"]
 	executable = "lame"
 	endianness = Endianness.LITTLE

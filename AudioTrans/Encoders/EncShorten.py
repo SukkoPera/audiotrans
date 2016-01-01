@@ -30,15 +30,18 @@ from AudioTrans.AudioTag import AudioTag
 
 class EncShorten (Encoder):
 	name = "Official Shorten encoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["shn"]
 	executable = "shorten"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["-c", "2", "-t", "u16hl"]
-	parametersLQ = ["-"]
-	parametersMQ = ["-"]
-	parametersHQ = ["-o"]
-	defaultQuality = Quality.MEDIUM
+	parametersLQ = ["-d", "4", "-"]		# Lossy
+	parametersMQ = ["-d", "8", "-"]		# Lossy
+	parametersHQ = ["-"]				# Lossless
+	defaultQuality = Quality.HIGH
+
+	def setTag (self, tag):
+		# Shorten does not seem to support tags
+		raise SyntaxError
 
 if __name__ == '__main__':
 	encFact = EncShorten ()

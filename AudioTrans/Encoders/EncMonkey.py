@@ -66,7 +66,7 @@ class EncMonkey (Encoder):
 		if tag.comment is not None:
 			audio["comment"] = tag.comment
 		if tag.trackNo is not None:
-			audio["tracknumber"] = tag.trackNo
+			audio["track"] = tag.trackNo
 		if tag.genre is not None:
 			audio["genre"] = tag.genre
 		audio.save ()

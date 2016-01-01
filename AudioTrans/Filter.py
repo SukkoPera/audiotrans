@@ -24,6 +24,7 @@ import logging
 logger = logging.getLogger (__name__)
 
 from Process import FilterProcess
+from Endianness import Endianness
 import utility as utility
 
 
@@ -41,7 +42,11 @@ class Filter (FilterProcess):
 		# Raw input options
 		if dec.rawOutput:
 			logging.info ("Enabling sox filter raw input")
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
+			if dec.endianness == Endianness.LITTLE:
+				cmdline += ["little"]
+			else:
+				cmdline += ["big"]
 		else:
 			cmdline += ["-t", "wav"]
 
@@ -50,11 +55,11 @@ class Filter (FilterProcess):
 
 		if enc.rawInput:
 			logging.info ("Enabling sox filter raw output")
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian", "little"]
-
-			#~ if enc.endianness != dec.endianness:
-				#~ logging.info ("Enabling sox filter endianness change")
-				#~ cmdline += ["-x"]
+			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
+			if enc.endianness == Endianness.LITTLE:
+				cmdline += ["little"]
+			else:
+				cmdline += ["big"]
 		else:
 			cmdline += ["-t", "wav"]
 

@@ -68,12 +68,15 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferT
 		try:
 			if transferTag:
 				tag = dec.getTag ()
-				#~ print tag
-				enc.setTag (tag)
+				if tag is not None:
+					#~ print tag
+					enc.setTag (tag)
+				else:
+					print >> sys.stderr, "WARNING: Input file does not contain any tags"
 		except NotImplementedError:
 			print >> sys.stderr, "ERROR: Cannot transfer tag"
 		except SyntaxError:
-			print >> sys.stderr, "WARNING: Output format does not support tags"
+			print >> sys.stderr, "WARNING: Input or output format does not support tags"
 
 		print "\rTranscoding ended"
 

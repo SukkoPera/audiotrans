@@ -90,11 +90,11 @@ class Filter (FilterProcess):
 					logger.debug ("Writing %d bytes to sox input", l)
 					self.process.stdin.write (self._buf[:l])
 					self.process.stdin.flush ()		# This is essential!
-					#~ if self._eof:
-						#~ self.process.stdin.close ()
 					self._buf = self._buf[l:]
 				else:
-					logger.debug ("Nothing to write!")
+					logger.debug ("Nothing to write, closing stdin")
+					# We may be closing stdin multiple times but it seems ok!
+					self.process.stdin.close ()
 
 				logger.debug ("Waiting for %d bytes as sox output", size)
 				buf = self.process.stdout.read (size)

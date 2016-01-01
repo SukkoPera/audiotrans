@@ -28,15 +28,37 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.oggvorbis import OggVorbis as mutaOggVorbis
+
 class DecOggVorbis (Decoder):
 	name = "Official OGG Vorbis decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["ogg"]
 	executable = "oggdec"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["--raw", "-bits", "16", "--endianness", "0", "--sign", "1"]
-	parametersHQ = ["-o", "-"]
-	defaultQuality = Quality.HIGH
+	# Note that --quiet if essential, otherwise oggdec intersperses audio data with progress output...
+	parameters = ["--raw", "--endian", "0", "--sign", "1", "--quiet", "--output", "-"]
+	rawOutput = True
+
+	def getTag (self):
+		m = mutaOggVorbis (self.filename)
+		logger.info ("Available tag fields: %s", m)
+		tag = AudioTag ()
+		if "artist" in m:
+			tag.artist = m["artist"]
+		if "album" in m:
+			tag.album = m["album"]
+		if "title" in m:
+			tag.title = m["title"]
+		if "date" in m:
+			tag.year = m["date"]
+		if "comment" in m:
+			tag.comment = m["comment"]
+		if "tracknumber" in m:
+			tag.trackNo = m["tracknumber"]
+		if "genre" in m:
+			tag.genre = m["genre"]
+		return tag
 
 if __name__ == '__main__':
 	decFact = DecOggVorbis ()

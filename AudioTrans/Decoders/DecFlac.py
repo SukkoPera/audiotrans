@@ -32,7 +32,7 @@ from mutagen.flac import FLAC as mutaFLAC
 
 class DecFlac (Decoder):
 	name = "Official FLAC decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["flac"]
 	executable = "flac"
 	parameters = ["--decode", "--decode-through-errors", "-c"]

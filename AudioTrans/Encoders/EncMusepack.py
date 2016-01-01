@@ -28,18 +28,36 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
-# NOTE: mppenc only supports WAVE files through stdin
+from mutagen.musepack import Musepack as mutaMPC
 
 class EncMusepack (Encoder):
 	name = "Official Musepack encoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["mpc"]
-	executable = "mppenc"
+	executable = "mpcenc"
 	endianness = Endianness.LITTLE
 	parametersLQ = ["--overwrite", "--radio", "-"]
 	parametersMQ = ["--overwrite", "--standard", "-"]
 	parametersHQ = ["--overwrite", "--xtreme", "-"]
-	defaultQuality = Quality.HIGH
+	defaultQuality = Quality.MEDIUM
+
+	def setTag (self, tag):
+		audio = mutaMPC (self.filename)
+		if tag.artist is not None:
+			audio["artist"] = tag.artist
+		if tag.album is not None:
+			audio["album"] = tag.album
+		if tag.title is not None:
+			audio["title"] = tag.title
+		if tag.year is not None:
+			audio["date"] = tag.year
+		if tag.comment is not None:
+			audio["comment"] = tag.comment
+		if tag.trackNo is not None:
+			audio["track"] = tag.trackNo
+		if tag.genre is not None:
+			audio["genre"] = tag.genre
+		audio.save ()
 
 if __name__ == '__main__':
 	encFact = EncMusepack ()

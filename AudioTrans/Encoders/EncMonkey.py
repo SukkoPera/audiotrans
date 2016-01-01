@@ -28,14 +28,14 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.monkeysaudio import MonkeysAudio as mutaMAC
+
+
 # WARNING: The stock "mac" doesn't allow reading from stdin, a patched version is necessary.
 # See http://www.etree.org/shnutils/shntool/
-
-# NOTE: This does not support raw format audio :( - Then I guess it just won't work!
-
 class EncMonkey (Encoder):
 	name = "Official Monkey's Audio encoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["ape"]
 	executable = "mac"
 	endianness = Endianness.LITTLE
@@ -44,15 +44,32 @@ class EncMonkey (Encoder):
 	parametersHQ = ["-", "DUMMY", "-c5000"]
 	defaultQuality = Quality.MEDIUM
 
-	def makeCmdLine (self, outFilename, quality, raw = True):
-		if raw:
-			raise Exception ("Encoder does not support raw format")
-		assert (outFilename and outFilename != "")
-		parameters = self.getQualityParameters (quality)
-		parameters[1] = outFilename
+	# Filename must not be appended with mac
+	def _makeCmdLine (self):
+		assert (self.filename and self.filename != "")
 		self.cmdLine = [self.executablePath]
+		parameters = self._getQualityParameters ()
+		parameters[1] = self.filename
 		self.cmdLine.extend (parameters)
 		return self.cmdLine
+
+	def setTag (self, tag):
+		audio = mutaMAC (self.filename)
+		if tag.artist is not None:
+			audio["artist"] = tag.artist
+		if tag.album is not None:
+			audio["album"] = tag.album
+		if tag.title is not None:
+			audio["title"] = tag.title
+		if tag.year is not None:
+			audio["date"] = tag.year
+		if tag.comment is not None:
+			audio["comment"] = tag.comment
+		if tag.trackNo is not None:
+			audio["tracknumber"] = tag.trackNo
+		if tag.genre is not None:
+			audio["genre"] = tag.genre
+		audio.save ()
 
 if __name__ == '__main__':
 	encFact = EncMonkey ()

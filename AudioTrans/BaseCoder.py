@@ -38,12 +38,8 @@ class BaseCoder (object):
 	executable = None
 	executablePath = None
 	endianness = None
-	parametersRaw = None
-	parametersWave = None
-	parametersLQ = None
-	parametersMQ = None
-	parametersHQ = None
-	defaultQuality = None
+	#~ parametersRaw = None
+	#~ parametersWave = None
 
 	@classmethod
 	def check (cls):

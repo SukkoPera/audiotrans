@@ -29,6 +29,11 @@ import Process
 
 
 class Encoder (BaseCoder):
+	parametersLQ = None
+	parametersMQ = None
+	parametersHQ = None
+	defaultQuality = None
+
 	# True if decoder requires raw input
 	rawInput = False
 

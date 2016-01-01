@@ -28,6 +28,8 @@ import Process
 
 
 class Decoder (BaseCoder):
+	parameters = None
+
 	# True if decoder only produces raw output
 	rawOutput = False
 

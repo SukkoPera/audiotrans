@@ -30,25 +30,22 @@ from AudioTrans.AudioTag import AudioTag
 
 class DecWav (Decoder):
 	name = "sox WAV decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["wav"]
 	executable = "sox"
 	endianness = Endianness.LITTLE
-#	parametersRaw = ["INFILE", "-t", "raw", "-r", "44100", "-s", "-w", "-c", "2", "-"]
-	parametersRaw = ["INFILE", "-t", "raw", "-r", "44100", "-s", "-2", "-c", "2", "-"]
-	parametersHQ = ["INFILE", "-"]
-	defaultQuality = Quality.HIGH
+	parameters = ["#INFILE#", "-t", "wav", "-"]
 
-	def makeCmdLine (self, inFilename, quality, raw = True):
-		assert (inFilename and inFilename != "")
-		if raw:
-			parameters = self.parametersRaw
-		else:
-			parameters = self.getQualityParameters (quality)
-		parameters[0] = inFilename
-		self.cmdLine = [self.executablePath]
-		self.cmdLine.extend (parameters)
+	def _makeCmdLine (self):
+		assert (self.filename is not None and self.filename != "")
+		self.cmdLine = [self.__class__.executablePath]
+		self.cmdLine.extend (self.parameters)
+		self.cmdLine = [self.filename if x == "#INFILE#" else x for x in self.cmdLine]
 		return self.cmdLine
+
+	def getTag (self):
+		# WAV does not support tags
+		raise SyntaxError
 
 if __name__ == '__main__':
 	decFact = DecWav ()

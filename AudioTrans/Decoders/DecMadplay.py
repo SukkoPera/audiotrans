@@ -28,16 +28,42 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.easyid3 import EasyID3
+
 class DecMadplay (Decoder):
 	name = "Madplay MP3 decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["mp3"]
 	executable = "madplay"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["--bit-depth=16", "--sample-rate=44100", "--stereo", "-oraw:-"]
-	parametersWave = ["-owave:-"]
-	parametersHQ = ["-S"]
-	defaultQuality = Quality.HIGH
+	parameters = ["-Q", "-owave:-"]
+
+	def getTag (self):
+		logger.debug ("Valid ID3 fields: %s", ", ".join (sorted (EasyID3.valid_keys.keys ())))
+
+		try:
+			m = EasyID3 (self.filename)
+			logger.info ("Available tag fields: %s", m)
+			tag = AudioTag ()
+			if "artist" in m:
+				tag.artist = m["artist"]
+			if "album" in m:
+				tag.album = m["album"]
+			if "title" in m:
+				tag.title = m["title"]
+			if "date" in m:
+				tag.year = m["date"]
+			if "comment" in m:
+				tag.comment = m["comment"]
+			if "tracknumber" in m:
+				tag.trackNo = m["tracknumber"]
+			if "genre" in m:
+				tag.genre = m["genre"]
+		except mutagen.id3.ID3NoHeaderError:
+			# File is not tagged
+			tag = None
+
+		return tag
 
 if __name__ == '__main__':
 	decFact = DecMadplay ()
@@ -45,4 +71,3 @@ if __name__ == '__main__':
 	buf = dec.read (1000)
 	print buf
 	dec.close ()
-

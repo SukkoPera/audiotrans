@@ -28,7 +28,7 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
-from mutagen.apev2 import APEv2File as mutaMP4
+from mutagen.easymp4 import EasyMP4
 
 class EncFaac (Encoder):
 	name = "FAAC MPEG-4 encoder"
@@ -42,7 +42,7 @@ class EncFaac (Encoder):
 	defaultQuality = Quality.MEDIUM
 
 	def setTag (self, tag):
-		audio = mutaMP4 (self.filename)
+		audio = EasyMP4 (self.filename)
 		if tag.artist is not None:
 			audio["artist"] = tag.artist
 		if tag.album is not None:

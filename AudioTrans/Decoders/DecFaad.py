@@ -28,6 +28,10 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+import mutagen
+from mutagen.easymp4 import EasyMP4
+
+
 class DecFaad (Decoder):
 	name = "Official FAAD2 decoder"
 	version = "20160101"
@@ -35,6 +39,30 @@ class DecFaad (Decoder):
 	executable = "faad"
 	endianness = Endianness.LITTLE
 	parameters = ["--quiet", "--stdio"]
+
+	def getTag (self):
+		m = EasyMP4 (self.filename)
+		logger.info ("Available tag fields: %s", m)
+		if len (m) > 0:
+			tag = AudioTag ()
+			if "artist" in m:
+				tag.artist = m["artist"]
+			if "album" in m:
+				tag.album = m["album"]
+			if "title" in m:
+				tag.title = m["title"]
+			if "date" in m:
+				tag.year = m["date"]
+			if "comment" in m:
+				tag.comment = m["comment"]
+			if "tracknumber" in m:
+				tag.trackNo = m["tracknumber"]
+			if "genre" in m:
+				tag.genre = m["genre"]
+		else:
+			# File is not tagged
+			tag = None
+		return tag
 
 if __name__ == '__main__':
 	decFact = DecFaad ()

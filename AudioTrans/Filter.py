@@ -27,11 +27,11 @@ import subprocess
 import fcntl
 import os
 
-from BaseCoder import BaseCoder
+from Module import Module
 from Endianness import Endianness
 
 
-class Filter (BaseCoder):
+class Filter (Module):
 	name = "SoX-based Filter"
 	version = "20160102"
 	executable = "sox"

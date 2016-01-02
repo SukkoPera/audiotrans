@@ -25,11 +25,9 @@ logger = logging.getLogger (__name__)
 
 import subprocess
 
-from BaseCoder import BaseCoder
-import Process
+from Module import Module
 
-
-class Decoder (BaseCoder):
+class Decoder (Module):
 	supportedExtensions = None
 	endianness = None
 	parameters = None

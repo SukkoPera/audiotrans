@@ -25,12 +25,10 @@ logger = logging.getLogger (__name__)
 
 import subprocess
 
-from BaseCoder import BaseCoder
+from Module import Module
 from Quality import Quality
-import Process
 
-
-class Encoder (BaseCoder):
+class Encoder (Module):
 	supportedExtensions = None
 	endianness = None
 	parametersLQ = None

@@ -35,7 +35,7 @@ from Endianness import Endianness
 class CoderException (Exception):
 	pass
 
-class BaseCoder (object):
+class Module (object):
 	# The following class members *MUST* be overridden by child classes
 	name = None
 	version = None

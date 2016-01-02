@@ -25,7 +25,7 @@ logger = logging.getLogger (__name__)
 
 import Encoders
 import Decoders
-from BaseCoder import CoderException
+from Module import CoderException
 from Quality import Quality
 
 

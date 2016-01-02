@@ -27,7 +27,6 @@ import logging
 logging.basicConfig (level = logging.INFO)
 #~ logger = logging.getLogger (__name__)
 
-
 from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
 from AudioTrans.Filter import Filter
@@ -35,15 +34,20 @@ from AudioTrans.Filter import Filter
 PROGRAM_VERSION = "20151231"
 BUFSIZE = 1024 * 8
 
-stepNo = 0
-def progress ():
-	global stepNo
+class ProgressMeter (object):
 	sequence = ["|", "/", "-", "\\"]
-	print >> sys.stderr, "\r%s" % sequence[stepNo % len (sequence)],
-	sys.stderr.flush ()
-	stepNo += 1
+
+	def __init__ (self):
+		self.stepNo = 0
+
+	def __call__ (self):
+		print >> sys.stderr, "\r%s" % self.sequence[self.stepNo % len (self.sequence)],
+		sys.stderr.flush ()
+		self.stepNo += 1
 
 def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferTag = True, progressCallback = None):
+	assert progressCallback is None or callable (progressCallback)
+
 	print >> sys.stderr, "%s -> %s" % (infile, outfile)
 	if os.path.isfile (outfile) and not overwrite:
 		print >> sys.stderr, "- Skipping because \"%s\" already exists" % outfile
@@ -70,20 +74,20 @@ def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferT
 		dec.close ()
 
 		# Transfer tag
-		try:
-			if transferTag:
+		if transferTag:
+			try:
 				tag = dec.getTag ()
 				if tag is not None:
 					#~ print tag
 					enc.setTag (tag)
 				else:
 					print >> sys.stderr, "WARNING: Input file does not contain any tags"
-		except NotImplementedError:
-			print >> sys.stderr, "ERROR: Cannot transfer tag"
-		except SyntaxError:
-			print >> sys.stderr, "WARNING: Input or output format does not support tags"
+			except NotImplementedError:
+				print >> sys.stderr, "ERROR: Cannot transfer tag"
+			except SyntaxError:
+				print >> sys.stderr, "WARNING: Input or output format does not support tags"
 
-		print "\rTranscoding ended"
+			print "\rTranscoding ended"
 
 def makeOutputFilename (infile, outfile):
 	name, separator, extension = outfile.rpartition (".")
@@ -128,7 +132,7 @@ def main ():
 			cm = CodecManager ()
 			for inputFile in inputFiles:
 				outFile = makeOutputFilename (inputFile, options.outputFile)
-				transcode (cm, inputFile, outFile, options.output_quality, options.overwrite, progressCallback = progress)
+				transcode (cm, inputFile, outFile, options.output_quality, options.overwrite, progressCallback = ProgressMeter ())
 	else:
 		print >> sys.stderr, "Please specify at least an input and an output file!"
 

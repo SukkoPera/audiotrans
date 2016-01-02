@@ -31,7 +31,7 @@ from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
 from AudioTrans.Filter import Filter
 
-PROGRAM_VERSION = "20151231"
+PROGRAM_VERSION = "20160102"
 BUFSIZE = 1024 * 8
 
 class ProgressMeter (object):

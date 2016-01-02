@@ -20,12 +20,11 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             #
 ###########################################################################
 
+import logging
+logger = logging.getLogger (__name__)
+
 import sys
 import os
-import logging
-
-logging.basicConfig (level = logging.INFO)
-#~ logger = logging.getLogger (__name__)
 
 from AudioTrans.CodecManager import CodecManager
 from AudioTrans.Quality import Quality
@@ -111,6 +110,8 @@ AudioTrans V %s by SukkoPera <software@sukkology.net>
 def main ():
 	welcome ()
 	cmdline_parser = OptionParser (usage = "usage: %prog [options] -o <output_file> <input file> [<input file> ...]", description = "Audio File Transcoder", version = "%s" % PROGRAM_VERSION)
+	# Debug options
+	cmdline_parser.add_option ("-l", "--loglevel", action = "store", type = "string", dest = "logLevel", help = "Log level (CRITICAL, ERROR, WARNING, INFO or DEBUG)", default = None)
 	# Input and output file options
 	cmdline_parser.add_option ("-o", "--output", action = "store", type = "string", dest = "outputFile", help = "File to write to", default = None)
 	# Output quality options
@@ -118,8 +119,12 @@ def main ():
 	cmdline_parser.add_option ("-M", "--medium-quality", action = "store_const", const = Quality.MEDIUM, dest = "output_quality", help = "Medium-quality encoding", default = None)
 	cmdline_parser.add_option ("-H", "--high-quality", action = "store_const", const = Quality.HIGH, dest = "output_quality", help = "High-quality encoding (slower)", default = None)
 	cmdline_parser.add_option ("-f", "--overwrite", action = "store_true", dest = "overwrite", help = "Overwrite destination file if it exists", default = False)
-	(options, args) = cmdline_parser.parse_args ()
-	inputFiles = args
+	(options, inputFiles) = cmdline_parser.parse_args ()
+
+	if options.logLevel is not None:
+		level = logging.getLevelName (options.logLevel.upper ())
+		#~ logger.setLevel (level)	# How this logging mechanism works in details is still so unclear to me!
+		logging.basicConfig (level = level)
 
 	if len (inputFiles) > 0 and options.outputFile and options.outputFile != "":
 		# At least an input and an output file were passed

@@ -30,13 +30,11 @@ from AudioTrans.AudioTag import AudioTag
 
 class DecFaad (Decoder):
 	name = "Official FAAD2 decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["mp4", "m4a", "aac"]
 	executable = "faad"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["-f", "2", "-b", "1", "-s", "44100", "-d"]
-	parametersHQ = ["-w"]
-	defaultQuality = Quality.HIGH
+	parameters = ["--quiet", "--stdio"]
 
 if __name__ == '__main__':
 	decFact = DecFaad ()

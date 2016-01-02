@@ -28,17 +28,36 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+from mutagen.flac import FLAC as mutaFLAC
+
 class EncFlac (Encoder):
 	name = "Official FLAC encoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["flac"]
 	executable = "flac"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["--force-raw-format", "--endian=little", "--channels=2", "--bps=16", "--sample-rate=44100", "--sign=unsigned"]
 	parametersLQ = ["--fast", "-f", "-", "-o"]
 	parametersMQ = ["-5", "-f", "-", "-o"]
 	parametersHQ = ["--best", "-f", "-", "-o"]
 	defaultQuality = Quality.HIGH
+
+	def setTag (self, tag):
+		audio = mutaFLAC (self.filename)
+		if tag.artist is not None:
+			audio["artist"] = tag.artist
+		if tag.album is not None:
+			audio["album"] = tag.album
+		if tag.title is not None:
+			audio["title"] = tag.title
+		if tag.year is not None:
+			audio["date"] = tag.year
+		if tag.comment is not None:
+			audio["comment"] = tag.comment
+		if tag.trackNo is not None:
+			audio["tracknumber"] = tag.trackNo
+		if tag.genre is not None:
+			audio["genre"] = tag.genre
+		audio.save ()
 
 if __name__ == '__main__':
 	encFact = EncFlac ()

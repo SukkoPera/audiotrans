@@ -23,11 +23,15 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from BaseCoder import BaseCoder, CoderException
+import subprocess
+
+from BaseCoder import BaseCoder
 import Process
 
 
 class Decoder (BaseCoder):
+	supportedExtensions = None
+	endianness = None
 	parameters = None
 
 	# True if decoder only produces raw output
@@ -37,25 +41,23 @@ class Decoder (BaseCoder):
 		super (Decoder, self).__init__ ()
 		self.filename = filename
 
-	def _makeCmdLine (self, raw = False):
-		assert (self.filename is not None and self.filename != "")
-		self.cmdLine = [self.__class__.executablePath]
-		if raw:
-			raise NotImplementedError
-			#~ assert self.parametersRaw is not None
-			#~ self.cmdLine.extend (self.parametersRaw)
-		self.cmdLine.extend (self.parameters)
-		self.cmdLine.append (self.filename)
-		return self.cmdLine
+	def _realStart (self):
+		return subprocess.Popen (self._cmdLine, stdin = self._devnull, stdout = subprocess.PIPE, stderr = self._devnull, bufsize = 0, close_fds = True)
 
-	def getProcess (self):
-		if self.process is None:
-			try:
-				self.process = Process.DecoderProcess (self._makeCmdLine ())
-			except Exception, ex:
-				logger.exception ("Exception in getDecoder(): %s", str (ex))
-				raise
-		return self.process
+	def read (self, size):
+		assert self.process is not None
+		return self.process.stdout.read (size)
+
+	def close (self):
+		assert self.process is not None
+		self.process.stdout.close ()
+		super (Decoder, self).close ()
+
+	def _makeCmdLine (self):
+		assert self.filename is not None and self.filename != ""
+		self._cmdLine = [self.__class__.executablePath]
+		self._cmdLine.extend (self.parameters)
+		self._cmdLine.append (self.filename)
 
 	def getTag (self):
 		raise NotImplementedError

@@ -23,12 +23,16 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from BaseCoder import BaseCoder, CoderException
+import subprocess
+
+from BaseCoder import BaseCoder
 from Quality import Quality
 import Process
 
 
 class Encoder (BaseCoder):
+	supportedExtensions = None
+	endianness = None
 	parametersLQ = None
 	parametersMQ = None
 	parametersHQ = None
@@ -44,6 +48,18 @@ class Encoder (BaseCoder):
 			self.quality = self.defaultQuality
 		else:
 			self.quality = quality
+
+	def _realStart (self):
+		return subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = self._devnull, stderr = self._devnull, bufsize = 0, close_fds = True)
+
+	def write (self, str):
+		assert self.process is not None
+		self.process.stdin.write (str)
+
+	def close (self):
+		assert self.process is not None
+		self.process.stdin.close ()
+		super (Encoder, self).close ()
 
 	def _getQualityParameters (self):
 		if self.quality == Quality.LOW:
@@ -63,20 +79,19 @@ class Encoder (BaseCoder):
 		output filename in a different position, then this method must
 		be overridden."""
 
-		assert (self.filename and self.filename != "")
-		self.cmdLine = [self.executablePath]
-		self.cmdLine.extend (self._getQualityParameters ())
-		self.cmdLine.append (self.filename)
-		return self.cmdLine
+		assert self.filename and self.filename != ""
+		self._cmdLine = [self.executablePath]
+		self._cmdLine.extend (self._getQualityParameters ())
+		self._cmdLine.append (self.filename)
 
-	def getProcess (self):
-		if self.process is None:
-			try:
-				self.process = Process.EncoderProcess (self._makeCmdLine ())
-			except Exception, ex:
-				logger.exception ("Exception in getEncoder(): %s", str (ex))
-				raise
-		return self.process
+	#~ def getProcess (self):
+		#~ if self.process is None:
+			#~ try:
+				#~ self.process = Process.EncoderProcess (self._makeCmdLine ())
+			#~ except Exception, ex:
+				#~ logger.exception ("Exception in getEncoder(): %s", str (ex))
+				#~ raise
+		#~ return self.process
 
 	def setTag (self, tag):
 		raise NotImplementedError

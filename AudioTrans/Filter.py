@@ -23,68 +23,86 @@
 import logging
 logger = logging.getLogger (__name__)
 
-from Process import FilterProcess
+import subprocess
+import fcntl
+import os
+
+from BaseCoder import BaseCoder
 from Endianness import Endianness
-import utility as utility
 
 
-class Filter (FilterProcess):
-	SOX_EXE = "sox"
+class Filter (BaseCoder):
+	name = "SoX-based Filter"
+	version = "20160102"
+	executable = "sox"
+
 	SOX_BUFSIZE = 8192		# 8192 is the default for SoX v14.4.0
 	READ_BUFSIZE = 1024 * 32
 
 	def __init__ (self, dec, enc):
-		self.soxpath = utility.findInPath (self.SOX_EXE)
-
-		# Start with general options
-		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE), "--ignore-length"]
-
-		# Raw input options
-		if dec.rawOutput:
-			logging.info ("Enabling sox filter raw input")
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
-			if dec.endianness == Endianness.LITTLE:
-				cmdline += ["little"]
-			else:
-				cmdline += ["big"]
-		else:
-			cmdline += ["-t", "wav"]
-
-		# Input filename: stdin
-		cmdline += ["-"]
-
-		if enc.rawInput:
-			logging.info ("Enabling sox filter raw output")
-			cmdline += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
-			if enc.endianness == Endianness.LITTLE:
-				cmdline += ["little"]
-			else:
-				cmdline += ["big"]
-		else:
-			cmdline += ["-t", "wav"]
-
-		# Output filename: stdout
-		cmdline += ["-"]
-
-		super (Filter, self).__init__ (cmdline)
-
-		self.input_ = dec.getProcess ()
-		#~ self._enc = enc
-
-		# Read buffer
+		super (Filter, self).__init__ ()
+		self._dec = dec
+		self._enc = enc
 		self._buf = ""
 		self._eof = False
 
+	def _realStart (self):
+		ret = subprocess.Popen (self._cmdLine, stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = self._devnull, bufsize = 0, close_fds = True)
+		fl = fcntl.fcntl (ret.stdout, fcntl.F_GETFL)
+		fcntl.fcntl (ret.stdout, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+		return ret
+
+	def write (self, str):
+		assert self.process is not None
+		self.process.stdin.write (str)
+
+	def close (self):
+		assert self.process is not None
+		self.process.stdin.close ()
+		self.process.stdout.close ()
+		super (Filter, self).close ()
+
+	def _makeCmdLine (self):
+		# Start with general options
+		self._cmdLine = [self.__class__.executablePath, "--buffer", str (self.SOX_BUFSIZE), "--ignore-length"]
+
+		# Raw input options
+		if self._dec.rawOutput:
+			logging.info ("Enabling sox filter raw input")
+			self._cmdLine += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
+			if self._dec.endianness == Endianness.LITTLE:
+				self._cmdLine += ["little"]
+			else:
+				self._cmdLine += ["big"]
+		else:
+			self._cmdLine += ["-t", "wav"]
+
+		# Input filename: stdin
+		self._cmdLine += ["-"]
+
+		if self._enc.rawInput:
+			logging.info ("Enabling sox filter raw output")
+			self._cmdLine += ["-t", "raw", "-r", "44100", "-c", "2", "-b", "16", "-e", "signed-integer", "--endian"]
+			if self._enc.endianness == Endianness.LITTLE:
+				self._cmdLine += ["little"]
+			else:
+				self._cmdLine += ["big"]
+		else:
+			self._cmdLine += ["-t", "wav"]
+
+		# Output filename: stdout
+		self._cmdLine += ["-"]
+
 	def _fillBuf (self):
 		while not self._eof and len (self._buf) < self.READ_BUFSIZE:
-			buf = self.input_.read (self.READ_BUFSIZE)
+			buf = self._dec.read (self.READ_BUFSIZE)
 			if len (buf) == 0:
 				logger.debug ("decoder input for sox EOF!")
 				self._eof = True
 			self._buf += buf
 
 	def read (self, size):
-		assert (self.process)
+		assert self.process is not None
 		retbuf = ""
 		while len (retbuf) < size:
 			try:
@@ -105,7 +123,7 @@ class Filter (FilterProcess):
 				buf = self.process.stdout.read (size)
 				if len (buf) > 0:
 					retbuf += buf
-					logger.debug ("OK")
+					logger.debug ("Got %s bytes" % len (buf))
 				else:
 					logger.debug ("Sox EOF!")
 					break

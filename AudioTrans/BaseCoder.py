@@ -23,40 +23,75 @@
 import logging
 logger = logging.getLogger (__name__)
 
+import os
+import subprocess
+
 import utility
 from Quality import Quality
 from Endianness import Endianness
+
+
 
 class CoderException (Exception):
 	pass
 
 class BaseCoder (object):
-	# The following class members *MUST* be overridden by child classes."
+	# The following class members *MUST* be overridden by child classes
 	name = None
 	version = None
-	supportedExtensions = None
 	executable = None
 	executablePath = None
-	endianness = None
-	#~ parametersRaw = None
-	#~ parametersWave = None
+
+	"""Base class for runnable objects."""
+	def __init__ (self):
+		if self.__class__.executablePath is None:
+			self.__class__.check ()
+		self._cmdLine = None
+		self.process = None
+		self._devnull = open (os.devnull)
+
+	@classmethod
+	def getName (cls):
+		return "%s v%s" % (cls.name, cls.version)
+
+	def start (self):
+		"""Starts the process and sets up pipes to/from it."""
+		if self._cmdLine is None:
+			self._makeCmdLine ()
+		assert self._cmdLine is not None
+		logger.info ("Starting process: %s" % " ".join (self._cmdLine))
+		self.process = self._realStart ()
+		logger.info ("Process started successfully, pid = %d", self.process.pid)
+
+	def close (self):
+		assert self.process is not None
+		ret = self.process.wait ()
+		if ret != 0:
+			logger.error ("Process returned %d", ret)
+			raise ProcessException ("ERROR: Process returned %d" % ret)
+		else:
+			logger.info ("Process terminated correctly")
+
+		return ret
+
+	# Please override!
+	def _realStart (self):
+		raise NotImplementedError
+
+	#~ def getProcess (self):
+		#~ if self.process is None:
+			#~ try:
+				#~ self.start ()
+			#~ except Exception, ex:
+				#~ logger.exception ("Exception in getDecoder(): %s", str (ex))
+				#~ raise
+		#~ return self.process
 
 	@classmethod
 	def check (cls):
 		"""See if the encoder executable can be found in $PATH"""
 		try:
 			cls.executablePath = utility.findInPath (cls.executable)
-			logger.debug ("Using \"%s\" as \"%s\" decoder", cls.executablePath, "/".join (cls.supportedExtensions))
+			logger.debug ("Using \"%s\" for module \"%s\"", cls.executablePath, cls.getName ())
 		except utility.NotFoundInPathException:
-			raise CoderException ("Cannot find \"%s\" (\"%s\" encoder) in path" % (cls.executable, "/".join (cls.supportedExtensions)))
-
-	def __init__ (self):
-		self.process = None
-
-	def getName (self):
-		return "%s v%s" % (self.name, self.version)
-
-#	def __makeOutputFilename (self, basename):
-#		"""Makes up the destination filename, usually appending the encoder extension to the filename."""
-#		self.outfilename = "%s.%s" % (basename, self.outfileext)
-#		return (self.outfilename)
+			raise CoderException ("Cannot find \"%s\" in path for module \"%s\"" % (cls.executable, cls.getName ()))

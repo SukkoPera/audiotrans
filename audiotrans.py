@@ -35,34 +35,39 @@ from AudioTrans.Filter import Filter
 PROGRAM_VERSION = "20151231"
 BUFSIZE = 1024 * 8
 
-def progress (stepNo):
+stepNo = 0
+def progress ():
+	global stepNo
 	sequence = ["|", "/", "-", "\\"]
 	print >> sys.stderr, "\r%s" % sequence[stepNo % len (sequence)],
 	sys.stderr.flush ()
+	stepNo += 1
 
-
-def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferTag = True):
+def transcode (codecsMgr, infile, outfile, quality, overwrite = False, transferTag = True, progressCallback = None):
 	print >> sys.stderr, "%s -> %s" % (infile, outfile)
 	if os.path.isfile (outfile) and not overwrite:
 		print >> sys.stderr, "- Skipping because \"%s\" already exists" % outfile
 	else:
-		step = 0
 		dec = codecsMgr.getDecoder (infile)
 		enc = codecsMgr.getEncoder (outfile, quality)
 		filt = Filter (dec, enc)
-		decproc = enc.getProcess ()
-		encproc = enc.getProcess ()
+
+		# Everything is inited, start
+		dec.start ()
+		enc.start ()
+		filt.start ()
+
 		buf = filt.read (BUFSIZE)
 		while len (buf) > 0:
-			progress (step)
-			step += 1
-			encproc.write (buf)
-			#progress (step)
-			#step += 1
+			enc.write (buf)
+			if progressCallback is not None:
+				progressCallback ()
 			buf = filt.read (BUFSIZE)
+
+		# Done, close everything
 		filt.close ()
-		encproc.close ()
-		decproc.close ()
+		enc.close ()
+		dec.close ()
 
 		# Transfer tag
 		try:
@@ -123,7 +128,7 @@ def main ():
 			cm = CodecManager ()
 			for inputFile in inputFiles:
 				outFile = makeOutputFilename (inputFile, options.outputFile)
-				transcode (cm, inputFile, outFile, options.output_quality, options.overwrite)
+				transcode (cm, inputFile, outFile, options.output_quality, options.overwrite, progressCallback = progress)
 	else:
 		print >> sys.stderr, "Please specify at least an input and an output file!"
 

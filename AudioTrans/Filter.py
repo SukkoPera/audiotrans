@@ -37,7 +37,7 @@ class Filter (FilterProcess):
 		self.soxpath = utility.findInPath (self.SOX_EXE)
 
 		# Start with general options
-		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE)]
+		cmdline = [self.soxpath, "--buffer", str (self.SOX_BUFSIZE), "--ignore-length"]
 
 		# Raw input options
 		if dec.rawOutput:

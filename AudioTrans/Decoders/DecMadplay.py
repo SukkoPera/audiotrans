@@ -28,6 +28,7 @@ from AudioTrans.Endianness import Endianness
 from AudioTrans.Quality import Quality
 from AudioTrans.AudioTag import AudioTag
 
+import mutagen
 from mutagen.easyid3 import EasyID3
 
 class DecMadplay (Decoder):

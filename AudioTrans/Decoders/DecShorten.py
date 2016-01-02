@@ -30,13 +30,22 @@ from AudioTrans.AudioTag import AudioTag
 
 class DecShorten (Decoder):
 	name = "Official Shorten decoder"
-	version = "0.1"
+	version = "20160101"
 	supportedExtensions = ["shn"]
 	executable = "shorten"
 	endianness = Endianness.LITTLE
-	parametersRaw = ["-c", "2", "-t", "u16hl"]
-	parametersHQ = ["-x", "-"]
-	defaultQuality = Quality.HIGH
+	parameters = ["-x", "#INFILE#", "-"]
+
+	def _makeCmdLine (self):
+		assert (self.filename is not None and self.filename != "")
+		self.cmdLine = [self.__class__.executablePath]
+		self.cmdLine.extend (self.parameters)
+		self.cmdLine = [self.filename if x == "#INFILE#" else x for x in self.cmdLine]
+		return self.cmdLine
+
+	def getTag (self):
+		# Shorten does not seem to support tags
+		raise SyntaxError
 
 if __name__ == '__main__':
 	decFact = DecShorten ()

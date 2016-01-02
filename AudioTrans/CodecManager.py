@@ -39,32 +39,32 @@ class CodecManager:
 		for encoder in Encoders.__all__:
 			exec ("from AudioTrans.Encoders import %s" % encoder)
 			exec ("encoderClass = %s.%s" % (encoder, encoder))
-			for fmt in encoderClass.supportedExtensions:
-				try:
-					encoderClass.check ()
+			try:
+				encoderClass.check ()
+				for fmt in encoderClass.supportedExtensions:
 					self.outputFormats[fmt] = encoderClass
-				except CoderException as ex:
-					# Encoder executable not found, ignore
-					pass
-				except Exception as ex:
-					# Could not init encoder for some other reason
-					logger.warning ("Cannot init encoder \"%s\": %s", encoder, str (ex))
+			except CoderException as ex:
+				# Encoder executable not found, ignore
+				pass
+			except Exception as ex:
+				# Could not init encoder for some other reason
+				logger.warning ("Cannot init encoder \"%s\": %s", encoder, str (ex))
 
 	def _setupDecoders (self):
 		self.inputFormats = {}
 		for decoder in Decoders.__all__:
 			exec ("from AudioTrans.Decoders import %s" % decoder)
 			exec ("decoderClass = %s.%s" % (decoder, decoder))
-			for fmt in decoderClass.supportedExtensions:
-				try:
-					decoderClass.check ()
+			try:
+				decoderClass.check ()
+				for fmt in decoderClass.supportedExtensions:
 					self.inputFormats[fmt] = decoderClass
-				except CoderException as ex:
-					# Decoder executable not found, ignore
-					pass
-				except Exception as ex:
-					# Could not init decoder for some other reason
-					logger.warning ("Cannot init decoder \"%s\": %s", decoder, str (ex))
+			except CoderException as ex:
+				# Decoder executable not found, ignore
+				pass
+			except Exception as ex:
+				# Could not init decoder for some other reason
+				logger.warning ("Cannot init decoder \"%s\": %s", decoder, str (ex))
 
 	def report (self):
 		import sys
